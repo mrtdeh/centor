@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package proto;
+option go_package = ".;proto";
+
+
+
+// close response
+message Close {}
+
+
+
+
+// @@@ - follower connection request for join to master
+message FollowerRequest {
+ oneof data{
+  JoinMessage join_msg = 1; 
+ }
+}
+message JoinMessage {
+  string id = 1;
+  string addr = 2;
+}
+
+
+
+message LeaderResponse {
+  oneof data{
+   ProxyRequest proxy_request = 1;
+  }
+}
+message ProxyRequest {
+  string proxy_port = 1;
+}
+
+message EmptyRequest{}
+message InfoResponse{
+  string id = 1;
+  bool is_master = 2;
+}
+
+message CreateProxyRequest{
+  string target_addr = 1;
+  string target_service_port = 2;
+}
+
+
+service Discovery {
+  rpc GetInfo(EmptyRequest) returns (InfoResponse);
+  rpc Follow(stream FollowerRequest) returns (stream LeaderResponse);
+
+  rpc CreateProxy(CreateProxyRequest) returns (Close);
+}
+
+// ================== Client Proxy Service ================
+
+message RequestPayload {
+  bytes conn = 1;
+  string token = 2;  // implement in future
+
+}
+
+service ProxyManager{
+  rpc SendPayload(RequestPayload) returns (Close);
+}
