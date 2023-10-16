@@ -1,4 +1,4 @@
-package main
+package grpc_server
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (s *Server) CreateProxy(ctx context.Context, req *proto.CreateProxyRequest) (*proto.Close, error) {
+func (s *server) CreateProxy(ctx context.Context, req *proto.CreateProxyRequest) (*proto.Close, error) {
 
-	for _, v := range s.clients {
+	for _, v := range s.connections {
 		if req.TargetAddr == v.Addr {
 
 			v.conn.Send(&proto.LeaderResponse{

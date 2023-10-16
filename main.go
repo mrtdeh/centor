@@ -1,18 +1,14 @@
 package main
 
 import (
-	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
-	"net"
-	"time"
 
+	grpc_client "github.com/mrtdeh/centor/pkg/grpc/client"
+	grpc_server "github.com/mrtdeh/centor/pkg/grpc/server"
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Server struct {
@@ -31,82 +27,36 @@ var portNumber int = 9001
 
 func main() {
 
+	host := flag.String("h", "0.0.0.0", "server host")
+	port := flag.String("p", "90001", "server port")
 	isServer := flag.Bool("server", false, "is server")
-	serverAddr := flag.String("server-addr", "", "is server")
+	serverAddr := flag.String("server-addr", "", "server address for dialing")
 	flag.Parse()
 
 	if *isServer {
-		addr := "localhost:90001"
-		grpcServer := grpc.NewServer()
+		// if mode is server
 
-		listener, err := net.Listen("tcp", addr)
-		if err != nil {
-			log.Fatalf("error creating the server %v", err)
-		}
+		addr := fmt.Sprintf("%s:%s", *host, *port)
+		// listen address for any connection
+		err := grpc_server.Serve(addr, func(gs *grpc.Server) {
 
-		proto.RegisterDiscoveryServer(grpcServer, server)
-		grpcServer.Serve(listener)
-	} else {
-		addr := *serverAddr
-		id := sha256.Sum256([]byte(time.Now().String()))
-		serverId := hex.EncodeToString(id[:])[:6]
-
-		conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err != nil {
-			log.Fatal(fmt.Errorf("error in dial : %s", err.Error()))
-		}
-		c := proto.NewDiscoveryClient(conn)
-
-		// im, err := c.GetInfo(context.Background(), &proto.EmptyRequest{})
-		// if err != nil {
-		// 	log.Fatal(fmt.Errorf("error check is_master : %s\n", err.Error()))
-		// }
-
-		// if !im.IsMaster {
-		// 	log.Fatal("this server is not master")
-		// }
-
-		req, err := c.Follow(context.Background())
-		if err != nil {
-			log.Fatalf("failed to follow : %s\n", err.Error())
-		}
-
-		req.Send(&proto.FollowerRequest{
-			Data: &proto.FollowerRequest_JoinMsg{
-				JoinMsg: &proto.JoinMessage{
-					Id:   serverId,
-					Addr: addr,
-				},
-			},
 		})
-
-		for {
-			res, err := req.Recv()
-			if err != nil {
-				log.Fatalf("error in recivce : %s", err.Error())
-			}
-
-			if p := res.GetProxyRequest(); p != nil {
-
-				// portNumber++
-				// serverPort := fmt.Sprintf("%d", portNumber)
-
-				// service := ServiceProxy{
-				// 	// user values
-				// 	Name:             "test-service",
-				// 	LocalServicePort: p.ProxyPort,
-				// 	// protected values
-				// 	gRPCServerPort: serverPort,
-				// 	msgCh:          make(chan []byte, 1024),
-				// }
-
-				// // serviceMap[p.]
-
-				// go func() {
-				// 	service.RunProxy()
-				// }()
-			}
-
+		if err != nil {
+			log.Fatal(err)
 		}
+
+	} else {
+		// if mode is client
+
+		c := grpc_client.NewClient()
+		// dialing to server
+		if err := c.Dial(*serverAddr); err != nil {
+			log.Fatal(err)
+		}
+		// follow grpc server connction
+		if err := c.Follow(); err != nil {
+			log.Fatal(err)
+		}
+
 	}
 }

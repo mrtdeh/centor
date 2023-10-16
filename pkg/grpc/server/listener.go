@@ -1,22 +1,37 @@
 package grpc_server
 
 import (
-	"log"
+	"fmt"
 	"net"
 
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
 )
 
-func NewServer(addr string) {
+type connection struct {
+	Id   string
+	Addr string
+	conn proto.Discovery_FollowServer
+}
+type server struct {
+	id          string
+	isMaster    bool
+	connections map[string]connection
+}
+
+var s *server
+
+// server grpc server and register service
+func Serve(addr string, register ...func(*grpc.Server)) error {
 
 	grpcServer := grpc.NewServer()
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalf("error creating the server %v", err)
+		return fmt.Errorf("error creating the server %v", err)
 	}
+	proto.RegisterDiscoveryServer(grpcServer, s)
+	// register(grpcServer)
 
-	proto.RegisterDiscoveryServer(grpcServer, server)
-	grpcServer.Serve(listener)
+	return grpcServer.Serve(listener)
 }

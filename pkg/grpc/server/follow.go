@@ -1,4 +1,4 @@
-package main
+package grpc_server
 
 import (
 	"log"
@@ -6,7 +6,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (s *Server) Follow(stream proto.Discovery_FollowServer) error {
+func (s *server) Follow(stream proto.Discovery_FollowServer) error {
 
 	res, err := stream.Recv()
 	if err != nil {
@@ -14,13 +14,13 @@ func (s *Server) Follow(stream proto.Discovery_FollowServer) error {
 	}
 
 	if j := res.GetJoinMsg(); j != nil {
-		client := Client{
+		client := connection{
 			conn: stream,
 			Id:   j.Id,
 			Addr: j.Addr,
 		}
 
-		s.clients[j.Id] = client
+		s.connections[j.Id] = client
 	}
 
 	return nil
