@@ -1,13 +1,14 @@
 package grpc_server
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/mrtdeh/centor/proto"
 )
 
 func (s *server) Follow(stream proto.Discovery_FollowServer) error {
-
+	var client connection
 	res, err := stream.Recv()
 	if err != nil {
 		log.Fatal(err)
@@ -21,7 +22,9 @@ func (s *server) Follow(stream proto.Discovery_FollowServer) error {
 		}
 
 		s.connections[j.Id] = client
+
+		fmt.Println("client added : ", j.Id)
 	}
 
-	return nil
+	return <-client.err
 }

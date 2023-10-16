@@ -11,6 +11,7 @@ import (
 type connection struct {
 	Id   string
 	Addr string
+	err  chan error
 	conn proto.Discovery_FollowServer
 }
 type server struct {
@@ -21,8 +22,18 @@ type server struct {
 
 var s *server
 
+func NewServer(name string) *server {
+
+	s = &server{
+		name,
+		true,
+		make(map[string]connection),
+	}
+	return s
+}
+
 // server grpc server and register service
-func Serve(addr string, register ...func(*grpc.Server)) error {
+func (s *server) Serve(addr string) error {
 
 	grpcServer := grpc.NewServer()
 
@@ -31,7 +42,8 @@ func Serve(addr string, register ...func(*grpc.Server)) error {
 		return fmt.Errorf("error creating the server %v", err)
 	}
 	proto.RegisterDiscoveryServer(grpcServer, s)
-	// register(grpcServer)
+
+	fmt.Println("listen an ", addr)
 
 	return grpcServer.Serve(listener)
 }

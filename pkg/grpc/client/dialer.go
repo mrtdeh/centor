@@ -2,10 +2,7 @@ package grpc_client
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"time"
 
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
@@ -18,16 +15,14 @@ type client struct {
 	conn proto.DiscoveryClient
 }
 
-func NewClient() *client {
-	return &client{}
+func NewClient(name string) *client {
+	return &client{id: name}
 }
 
 // dial with server
 func (c *client) Dial(addr string) error {
 
 	c.addr = addr
-	id := sha256.Sum256([]byte(time.Now().String()))
-	c.id = hex.EncodeToString(id[:])[:6]
 
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -68,6 +63,7 @@ func (c *client) Follow() error {
 }
 
 func processProxyRequest(p *proto.ProxyRequest) {
+	fmt.Println("proxy request from server : ", p.ProxyPort)
 	// portNumber++
 	// serverPort := fmt.Sprintf("%d", portNumber)
 
