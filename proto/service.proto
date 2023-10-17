@@ -20,6 +20,7 @@ message FollowerRequest {
 message JoinMessage {
   string id = 1;
   string addr = 2;
+  bool is_server = 3;
 }
 
 

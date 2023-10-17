@@ -9,12 +9,13 @@ import (
 )
 
 type connection struct {
-	Id   string
-	Addr string
-	err  chan error
-	conn proto.Discovery_FollowServer
+	Id     string
+	Addr   string
+	Server bool
+	err    chan error
+	conn   proto.Discovery_FollowServer
 }
-type ServerOptions struct {
+type Configs struct {
 	Name    string
 	Host    string
 	Port    string
@@ -24,36 +25,29 @@ type server struct {
 	id          string
 	addr        string
 	isMaster    bool
+	master      proto.DiscoveryClient
 	connections map[string]connection
 }
 
-var s *server
+// server grpc server and register service
+func (cnf *Configs) Listen() error {
 
-func NewServer(opt ServerOptions) *server {
-	// check whether name exist in cluster or not
-	name := opt.Name
-	addr := fmt.Sprintf("%s:%s", opt.Host, opt.Port)
-	s = &server{
-		id:          name,
-		addr:        addr,
+	s := &server{
+		addr:        fmt.Sprintf("%s:%s", cnf.Host, cnf.Port),
 		connections: make(map[string]connection),
 	}
-	return s
-}
 
-// server grpc server and register service
-func (s *server) Listen(addr string) error {
-
-	s.addr = addr
 	grpcServer := grpc.NewServer()
-
-	listener, err := net.Listen("tcp", addr)
+	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		return fmt.Errorf("error creating the server %v", err)
 	}
 	proto.RegisterDiscoveryServer(grpcServer, s)
+	fmt.Println("listen an ", s.addr)
 
-	fmt.Println("listen an ", addr)
+	if len(cnf.Replica) > 0 {
+		go s.ConnectToMaster(cnf.Name, cnf.Replica)
+	}
 
 	return grpcServer.Serve(listener)
 }

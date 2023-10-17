@@ -8,7 +8,7 @@ import (
 )
 
 // this is a function that accept message from server
-func (c *client) Follow() error {
+func (c *client) follow() error {
 	req, err := c.conn.Follow(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to follow : %s\n", err.Error())
@@ -17,8 +17,9 @@ func (c *client) Follow() error {
 	req.Send(&proto.FollowerRequest{
 		Data: &proto.FollowerRequest_JoinMsg{
 			JoinMsg: &proto.JoinMessage{
-				Id:   c.id,
-				Addr: c.addr,
+				Id:       c.id,
+				Addr:     c.serverAddr,
+				IsServer: c.isServer,
 			},
 		},
 	})

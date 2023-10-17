@@ -15,15 +15,17 @@ func (s *server) Follow(stream proto.Discovery_FollowServer) error {
 	}
 
 	if j := res.GetJoinMsg(); j != nil {
+
 		client := connection{
-			conn: stream,
-			Id:   j.Id,
-			Addr: j.Addr,
+			conn:   stream,
+			Id:     j.Id,
+			Addr:   j.Addr,
+			Server: j.IsServer,
 		}
 
 		s.connections[j.Id] = client
 
-		fmt.Println("client added : ", j.Id)
+		fmt.Printf("client added ID=%s IsServer=%v \n", j.Id, j.IsServer)
 	}
 
 	return <-client.err
