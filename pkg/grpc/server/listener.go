@@ -14,27 +14,37 @@ type connection struct {
 	err  chan error
 	conn proto.Discovery_FollowServer
 }
+type ServerOptions struct {
+	Name    string
+	Host    string
+	Port    string
+	Replica []string
+}
 type server struct {
 	id          string
+	addr        string
 	isMaster    bool
 	connections map[string]connection
 }
 
 var s *server
 
-func NewServer(name string) *server {
-
+func NewServer(opt ServerOptions) *server {
+	// check whether name exist in cluster or not
+	name := opt.Name
+	addr := fmt.Sprintf("%s:%s", opt.Host, opt.Port)
 	s = &server{
-		name,
-		true,
-		make(map[string]connection),
+		id:          name,
+		addr:        addr,
+		connections: make(map[string]connection),
 	}
 	return s
 }
 
 // server grpc server and register service
-func (s *server) Serve(addr string) error {
+func (s *server) Listen(addr string) error {
 
+	s.addr = addr
 	grpcServer := grpc.NewServer()
 
 	listener, err := net.Listen("tcp", addr)
@@ -47,3 +57,16 @@ func (s *server) Serve(addr string) error {
 
 	return grpcServer.Serve(listener)
 }
+
+// func IsMaster() bool {
+// 	im, err := c.GetInfo(context.Background(), &proto.EmptyRequest{})
+// 	if err != nil {
+// 		log.Fatal(fmt.Errorf("error check is_master : %s\n", err.Error()))
+// 	}
+
+// 	if !im.IsMaster {
+// 		return false
+// 	}
+
+// 	return true
+// }

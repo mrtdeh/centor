@@ -40,8 +40,8 @@ func main() {
 	if *isServer { // if mode is server
 
 		addr := fmt.Sprintf("%s:%s", *host, *port)
-		s := grpc_server.NewServer(*name)
-		err := s.Serve(addr)
+		s := grpc_server.NewServer(grpc_server.ServerOptions{})
+		err := s.Listen(addr)
 		if err != nil {
 			log.Fatal(err)
 		}

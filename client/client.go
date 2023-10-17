@@ -49,15 +49,6 @@ func main() {
 	}
 	c := proto.NewDiscoveryClient(conn)
 
-	// im, err := c.GetInfo(context.Background(), &proto.EmptyRequest{})
-	// if err != nil {
-	// 	log.Fatal(fmt.Errorf("error check is_master : %s\n", err.Error()))
-	// }
-
-	// if !im.IsMaster {
-	// 	log.Fatal("this server is not master")
-	// }
-
 	req, err := c.Follow(context.Background())
 	if err != nil {
 		log.Fatalf("failed to follow : %s\n", err.Error())
