@@ -22,7 +22,7 @@ type Client struct {
 }
 
 var server *Server
-var portNumber int = 9001
+var portNumber int = 11000
 
 func main() {
 
@@ -41,7 +41,6 @@ func main() {
 
 		addr := fmt.Sprintf("%s:%s", *host, *port)
 		s := grpc_server.NewServer(*name)
-		// listen address for any connection
 		err := s.Serve(addr)
 		if err != nil {
 			log.Fatal(err)
@@ -50,11 +49,9 @@ func main() {
 	} else { // if mode is client
 
 		c := grpc_client.NewClient(*name)
-		// dialing to server
 		if err := c.Dial(*serverAddr); err != nil {
 			log.Fatal(err)
 		}
-		// follow grpc server connction
 		if err := c.Follow(); err != nil {
 			log.Fatal(err)
 		}
