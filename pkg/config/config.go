@@ -12,11 +12,12 @@ import (
 var serviceMap = map[string]service.Service{}
 
 type config struct {
-	Name       *string
-	Host       *string
-	Port       *string
-	IsServer   *bool
-	ServerAddr *string
+	Name        *string
+	Host        *string
+	Port        *string
+	IsServer    *bool
+	IsLeader    *bool
+	ServersAddr *string
 
 	Service *ServiceConfig `hcl:"service,block"`
 }
@@ -40,7 +41,8 @@ func LoadConfiguration() *config {
 	c.Host = flag.String("h", "0.0.0.0", "server host")
 	c.Port = flag.String("p", "10000", "server port")
 	c.IsServer = flag.Bool("server", false, "is server")
-	c.ServerAddr = flag.String("server-addr", "", "server address for dialing")
+	c.IsLeader = flag.Bool("leader", false, "is leader")
+	c.ServersAddr = flag.String("servers-addr", "", "servers address for dialing")
 	flag.Parse()
 
 	if c.Name == nil {

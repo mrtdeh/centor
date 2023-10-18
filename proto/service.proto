@@ -38,6 +38,7 @@ message EmptyRequest{}
 message InfoResponse{
   string id = 1;
   bool is_master = 2;
+  int32 weight = 3;
 }
 
 message CreateProxyRequest{

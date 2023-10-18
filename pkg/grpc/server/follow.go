@@ -15,6 +15,9 @@ func (s *server) Follow(stream proto.Discovery_FollowServer) error {
 	}
 
 	if j := res.GetJoinMsg(); j != nil {
+		if _, ok := s.connections[j.Id]; ok {
+			return fmt.Errorf("name is select by another nodes")
+		}
 
 		client := connection{
 			conn:   stream,
@@ -24,6 +27,7 @@ func (s *server) Follow(stream proto.Discovery_FollowServer) error {
 		}
 
 		s.connections[j.Id] = client
+		s.weight++
 
 		fmt.Printf("client added ID=%s IsServer=%v \n", j.Id, j.IsServer)
 	}

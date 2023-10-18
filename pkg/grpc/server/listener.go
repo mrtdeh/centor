@@ -16,15 +16,17 @@ type connection struct {
 	conn   proto.Discovery_FollowServer
 }
 type Configs struct {
-	Name    string
-	Host    string
-	Port    string
-	Replica []string
+	Name     string
+	Host     string
+	Port     string
+	Replica  []string
+	IsLeader bool
 }
 type server struct {
 	id          string
 	addr        string
 	isMaster    bool
+	weight      int
 	master      proto.DiscoveryClient
 	connections map[string]connection
 }
@@ -35,6 +37,7 @@ func (cnf *Configs) Listen() error {
 	s := &server{
 		addr:        fmt.Sprintf("%s:%s", cnf.Host, cnf.Port),
 		connections: make(map[string]connection),
+		isMaster:    cnf.IsLeader,
 	}
 
 	grpcServer := grpc.NewServer()

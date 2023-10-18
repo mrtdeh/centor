@@ -10,5 +10,6 @@ func (s *server) GetInfo(context.Context, *proto.EmptyRequest) (*proto.InfoRespo
 	return &proto.InfoResponse{
 		Id:       s.id,
 		IsMaster: s.isMaster,
+		Weight:   int32(s.weight),
 	}, nil
 }
