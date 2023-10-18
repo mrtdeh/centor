@@ -37,8 +37,6 @@ func (cnf *Configs) Connect() error {
 		return err
 	}
 
-	fmt.Println("sel addr : ", addr)
-
 	// dial to selected master
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
