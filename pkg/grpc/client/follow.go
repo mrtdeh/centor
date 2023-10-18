@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	grpc_proxy "github.com/mrtdeh/centor/pkg/grpc/proxy"
 	"github.com/mrtdeh/centor/proto"
 )
 
@@ -31,30 +32,27 @@ func (c *client) follow() error {
 		}
 
 		if p := res.GetProxyRequest(); p != nil {
-			processProxyRequest(p)
+			go processProxyRequest(p)
 		}
 
 	}
 }
 
+var portNumber int = 11000
+
 func processProxyRequest(p *proto.ProxyRequest) {
 	fmt.Println("proxy request from server : ", p.ProxyPort)
-	// portNumber++
-	// serverPort := fmt.Sprintf("%d", portNumber)
+	portNumber++
+	serverPort := fmt.Sprintf("%d", portNumber)
 
-	// service := ServiceProxy{
-	// 	// user values
-	// 	Name:             "test-service",
-	// 	LocalServicePort: p.ProxyPort,
-	// 	// protected values
-	// 	gRPCServerPort: serverPort,
-	// 	msgCh:          make(chan []byte, 1024),
-	// }
+	service := grpc_proxy.Configs{
+		// Name:             "test-service",
+		LocalServicePort: p.ProxyPort,
+		GRPCServerPort:   serverPort,
+	}
 
-	// // serviceMap[p.]
+	// serviceMap[p.]
 
-	// go func() {
-	// 	service.RunProxy()
-	// }()
+	service.Listen()
 
 }
