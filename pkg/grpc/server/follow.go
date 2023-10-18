@@ -35,6 +35,4 @@ func (s *server) Follow(stream proto.Discovery_FollowServer) error {
 			fmt.Printf("client added ID=%s IsServer=%v \n", j.Id, j.IsServer)
 		}
 	}
-
-	// return <-client.err
 }
