@@ -33,6 +33,11 @@ func (cnf *Configs) Connect() error {
 	} else {
 		addr, err = bestElect(cnf.ServersAddr)
 	}
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("sel addr : ", addr)
 
 	// dial to selected master
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -59,14 +64,18 @@ func bestElect(addrs []string) (string, error) {
 	index := -1
 	weight := math.MaxInt32
 	for i, a := range addrs {
+
 		conn, err := grpc.Dial(a, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			return "", fmt.Errorf("error in dial : %s", err.Error())
 		}
+
 		c := proto.NewDiscoveryClient(conn)
 		res, err := c.GetInfo(context.Background(), &proto.EmptyRequest{})
 		if err != nil {
-			return "", fmt.Errorf("error in getInfo : %s", err.Error())
+			// log.Println("error in getInfo : ", err.Error())
+			fmt.Println("failed to get info from  :", a)
+			continue
 		}
 
 		if res.Weight < int32(weight) {
@@ -78,7 +87,7 @@ func bestElect(addrs []string) (string, error) {
 	}
 
 	if index == -1 {
-		return "", fmt.Errorf("best not found")
+		return "", fmt.Errorf("server's are not available")
 	}
 
 	return addrs[index], nil
