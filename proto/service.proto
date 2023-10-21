@@ -42,7 +42,7 @@ message InfoResponse{
 }
 
 message CreateProxyRequest{
-  string target_addr = 1;
+  string target_id= 1;
   string target_service_port = 2;
 }
 
@@ -59,9 +59,12 @@ service Discovery {
 message RequestPayload {
   bytes conn = 1;
   string token = 2;  // implement in future
+}
 
+message ResponsePayload {
+  bytes body = 1;
 }
 
 service ProxyManager{
-  rpc SendPayload(RequestPayload) returns (Close);
+  rpc SendPayload(RequestPayload) returns (ResponsePayload);
 }

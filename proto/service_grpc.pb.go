@@ -211,7 +211,7 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProxyManagerClient interface {
-	SendPayload(ctx context.Context, in *RequestPayload, opts ...grpc.CallOption) (*Close, error)
+	SendPayload(ctx context.Context, in *RequestPayload, opts ...grpc.CallOption) (*ResponsePayload, error)
 }
 
 type proxyManagerClient struct {
@@ -222,8 +222,8 @@ func NewProxyManagerClient(cc grpc.ClientConnInterface) ProxyManagerClient {
 	return &proxyManagerClient{cc}
 }
 
-func (c *proxyManagerClient) SendPayload(ctx context.Context, in *RequestPayload, opts ...grpc.CallOption) (*Close, error) {
-	out := new(Close)
+func (c *proxyManagerClient) SendPayload(ctx context.Context, in *RequestPayload, opts ...grpc.CallOption) (*ResponsePayload, error) {
+	out := new(ResponsePayload)
 	err := c.cc.Invoke(ctx, "/proto.ProxyManager/SendPayload", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -235,14 +235,14 @@ func (c *proxyManagerClient) SendPayload(ctx context.Context, in *RequestPayload
 // All implementations should embed UnimplementedProxyManagerServer
 // for forward compatibility
 type ProxyManagerServer interface {
-	SendPayload(context.Context, *RequestPayload) (*Close, error)
+	SendPayload(context.Context, *RequestPayload) (*ResponsePayload, error)
 }
 
 // UnimplementedProxyManagerServer should be embedded to have forward compatible implementations.
 type UnimplementedProxyManagerServer struct {
 }
 
-func (UnimplementedProxyManagerServer) SendPayload(context.Context, *RequestPayload) (*Close, error) {
+func (UnimplementedProxyManagerServer) SendPayload(context.Context, *RequestPayload) (*ResponsePayload, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPayload not implemented")
 }
 

@@ -37,7 +37,7 @@ func LoadConfiguration() *config {
 	// }
 	// parseServices(configs)
 
-	c.Name = flag.String("n", "", "server host")
+	c.Name = flag.String("n", "", "client name")
 	c.Host = flag.String("h", "0.0.0.0", "server host")
 	c.Port = flag.String("p", "10000", "server port")
 	c.IsServer = flag.Bool("server", false, "is server")
