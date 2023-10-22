@@ -11,8 +11,6 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
-// var serviceMap = map[string]service.Service{}
-
 type config struct {
 	Name        *string `hcl:"name"`
 	Host        *string `hcl:"host" json:"host,omitempty"`

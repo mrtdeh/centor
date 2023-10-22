@@ -54,16 +54,3 @@ func (cnf *Configs) Listen() error {
 
 	return grpcServer.Serve(listener)
 }
-
-// func IsMaster() bool {
-// 	im, err := c.GetInfo(context.Background(), &proto.EmptyRequest{})
-// 	if err != nil {
-// 		log.Fatal(fmt.Errorf("error check is_master : %s\n", err.Error()))
-// 	}
-
-// 	if !im.IsMaster {
-// 		return false
-// 	}
-
-// 	return true
-// }
