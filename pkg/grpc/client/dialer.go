@@ -68,7 +68,7 @@ func (c *client) startServiceProxy() {
 
 	c.wait()
 	// create proxy request
-	if err := c.createProxy("client2", "8090"); err != nil {
+	if err := c.createProxy("service id", "local port"); err != nil {
 		log.Fatalf("error in proxy : %s", err.Error())
 	}
 

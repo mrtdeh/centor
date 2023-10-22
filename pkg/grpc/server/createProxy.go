@@ -2,17 +2,18 @@ package grpc_server
 
 import (
 	"context"
-	"log"
 
 	"github.com/mrtdeh/centor/proto"
 )
 
 func (s *server) CreateProxy(ctx context.Context, req *proto.CreateProxyRequest) (*proto.Close, error) {
-	log.Println("debug 1 : ", s.connections)
+	// search service id in services pool and get that target id
+
+	// iterate connections to find target
 	for _, v := range s.connections {
-		log.Println("debug 1.5 : ", v.Id, req.TargetId)
 		if req.TargetId == v.Id {
-			log.Println("debug 2")
+
+			// send proxy request to target
 			v.conn.Send(&proto.LeaderResponse{
 				Data: &proto.LeaderResponse_ProxyRequest{
 					ProxyRequest: &proto.ProxyRequest{

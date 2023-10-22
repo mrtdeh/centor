@@ -2,8 +2,10 @@ package grpc_server
 
 import (
 	"fmt"
+	"log"
 	"net"
 
+	grpc_client "github.com/mrtdeh/centor/pkg/grpc/client"
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
 )
@@ -49,7 +51,17 @@ func (cnf *Configs) Listen() error {
 	fmt.Println("listen an ", s.addr)
 
 	if len(cnf.Replica) > 0 {
-		go s.ConnectToMaster(cnf.Name, cnf.Replica)
+		go func() {
+			c := grpc_client.Configs{
+				Name:                cnf.Name,
+				IsServer:            true,
+				ConnectToOnlyMaster: true,
+				ServersAddr:         cnf.Replica,
+			}
+			if err := c.Connect(); err != nil {
+				log.Fatal(err)
+			}
+		}()
 	}
 
 	return grpcServer.Serve(listener)
