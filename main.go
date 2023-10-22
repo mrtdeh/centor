@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"strings"
 
@@ -10,22 +11,25 @@ import (
 )
 
 func main() {
+	var confPath string
+	flag.StringVar(&confPath, "c", "", "config path")
+	flag.Parse()
 
-	cnf := config.LoadConfiguration()
+	cnf := config.LoadConfiguration(confPath)
 
 	var serversAddrs []string = nil
 	sd := cnf.ServersAddr
-	if sd != nil && *sd != "" {
-		serversAddrs = strings.Split(strings.TrimSpace(*sd), ",")
+	if sd != "" {
+		serversAddrs = strings.Split(strings.TrimSpace(sd), ",")
 	}
 
-	if *cnf.IsServer { // if mode is server
+	if cnf.IsServer { // if mode is server
 
 		s := server.Configs{
-			Name:     *cnf.Name,
-			Host:     *cnf.Host,
-			Port:     *cnf.Port,
-			IsLeader: *cnf.IsLeader,
+			Name:     cnf.Name,
+			Host:     cnf.Host,
+			Port:     cnf.Port,
+			IsLeader: cnf.IsLeader,
 			Replica:  serversAddrs,
 		}
 		err := s.Listen()
@@ -36,7 +40,7 @@ func main() {
 	} else { // if mode is client
 
 		c := client.Configs{
-			Name:        *cnf.Name,
+			Name:        cnf.Name,
 			ServersAddr: serversAddrs,
 		}
 		if err := c.Connect(); err != nil {

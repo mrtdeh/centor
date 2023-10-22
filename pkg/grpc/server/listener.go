@@ -18,7 +18,7 @@ type connection struct {
 type Configs struct {
 	Name     string
 	Host     string
-	Port     string
+	Port     uint
 	Replica  []string
 	IsLeader bool
 }
@@ -35,7 +35,7 @@ type server struct {
 func (cnf *Configs) Listen() error {
 
 	s := &server{
-		addr:        fmt.Sprintf("%s:%s", cnf.Host, cnf.Port),
+		addr:        fmt.Sprintf("%s:%d", cnf.Host, cnf.Port),
 		connections: make(map[string]connection),
 		isMaster:    cnf.IsLeader,
 	}
