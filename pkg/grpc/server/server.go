@@ -2,6 +2,7 @@ package grpc_server
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -14,7 +15,7 @@ type Config struct {
 	IsLeader bool
 }
 
-func Init(cnf Config) error {
+func Start(cnf Config) error {
 	var MainErr chan error = make(chan error, 1)
 
 	a := &agent{
@@ -27,26 +28,21 @@ func Init(cnf Config) error {
 		isReady:  false,
 	}
 
-	if cnf.IsServer {
-		go func() {
-			MainErr <- a.Listen()
-		}()
-	}
-
 	if !cnf.IsLeader && len(cnf.Replica) > 0 {
 		var err error
-		var try int = 10
 		go func() {
 			for {
 				err = a.Connect()
-				if try <= 0 {
-					MainErr <- err
+				if err != nil {
+					log.Println("failed to connect to server : ", err.Error())
 				}
-
-				try--
 				time.Sleep(time.Second * 1)
 			}
 		}()
+	}
+
+	if cnf.IsServer {
+		MainErr <- a.Listen()
 	}
 
 	return <-MainErr
