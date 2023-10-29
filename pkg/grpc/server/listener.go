@@ -5,41 +5,53 @@ import (
 	"log"
 	"net"
 
-	grpc_client "github.com/mrtdeh/centor/pkg/grpc/client"
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
 )
 
-type connection struct {
-	Id     string
-	Addr   string
-	Server bool
-	err    chan error
-	conn   proto.Discovery_FollowServer
-}
-type Configs struct {
+type Config struct {
 	Name     string
 	Host     string
 	Port     uint
 	Replica  []string
+	IsServer bool
 	IsLeader bool
 }
-type server struct {
-	id          string
-	addr        string
-	isMaster    bool
-	weight      int
-	master      proto.DiscoveryClient
-	connections map[string]connection
+type agent struct {
+	id       string
+	addr     string
+	isServer bool
+	isLeader bool
+	weight   int
+	parent   *parent // connection client -> server
+	done     chan bool
+
+	brothers []string
+	childs   map[string]child
+}
+type parent struct {
+	conn     proto.DiscoveryClient
+	isLeader bool
 }
 
-// server grpc server and register service
-func (cnf *Configs) Listen() error {
+type child struct {
+	Id       string
+	Addr     string
+	IsServer bool
+	err      chan error
+	conn     proto.Discovery_FollowServer
+}
 
-	s := &server{
-		addr:        fmt.Sprintf("%s:%d", cnf.Host, cnf.Port),
-		connections: make(map[string]connection),
-		isMaster:    cnf.IsLeader,
+func Init(cnf Config) error {
+
+	s := &agent{
+		id:       cnf.Name,
+		addr:     fmt.Sprintf("%s:%d", cnf.Host, cnf.Port),
+		childs:   make(map[string]child),
+		done:     make(chan bool, 1),
+		isServer: cnf.IsServer,
+		isLeader: cnf.IsLeader,
+		brothers: cnf.Replica,
 	}
 
 	grpcServer := grpc.NewServer()
@@ -50,17 +62,12 @@ func (cnf *Configs) Listen() error {
 	proto.RegisterDiscoveryServer(grpcServer, s)
 	fmt.Println("listen an ", s.addr)
 
-	if len(cnf.Replica) > 0 {
+	if !cnf.IsLeader && len(cnf.Replica) > 0 {
 		go func() {
-			c := grpc_client.Configs{
-				Name:                cnf.Name,
-				IsServer:            true,
-				ConnectToOnlyMaster: true,
-				ServersAddr:         cnf.Replica,
-			}
-			if err := c.Connect(); err != nil {
+			if err := s.Connect(); err != nil {
 				log.Fatal(err)
 			}
+
 		}()
 	}
 
