@@ -40,10 +40,10 @@ type Config struct {
 	Services    []Service
 }
 
-func LoadConfiguration(path string) *Config {
-	if path == "" {
-		path = "/etc/centor.d/"
-	}
+func LoadConfiguration() *Config {
+
+	path := "/etc/centor.d/"
+
 	configs, err := loadConfigsFromDir(path)
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %s", err)

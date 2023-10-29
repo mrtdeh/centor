@@ -23,6 +23,8 @@ func (a *agent) Connect() error {
 		return err
 	}
 
+	a.parent = &parent{}
+
 	// dial to selected master
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

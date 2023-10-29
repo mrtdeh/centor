@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"strings"
 
@@ -10,11 +9,8 @@ import (
 )
 
 func main() {
-	var confPath string
-	flag.StringVar(&confPath, "c", "", "config path")
-	flag.Parse()
 
-	cnf := config.LoadConfiguration(confPath)
+	cnf := config.LoadConfiguration()
 
 	var serversAddrs []string = nil
 	sd := cnf.ServersAddr
