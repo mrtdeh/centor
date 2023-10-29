@@ -36,7 +36,9 @@ func (s *agent) CreateProxy(ctx context.Context, req *proto.CreateProxyRequest) 
 
 func (a *agent) CreateServiceProxy() {
 
-	<-a.done
+	// check for ready
+	a.waitForReady()
+
 	// create proxy request
 	if err := a.createProxy("service id", "local port"); err != nil {
 		log.Fatalf("error in proxy : %s", err.Error())

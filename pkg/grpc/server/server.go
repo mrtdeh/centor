@@ -2,6 +2,7 @@ package grpc_server
 
 import (
 	"fmt"
+	"time"
 )
 
 type Config struct {
@@ -14,16 +15,16 @@ type Config struct {
 }
 
 func Init(cnf Config) error {
-	var MainErr chan error
+	var MainErr chan error = make(chan error, 1)
 
 	a := &agent{
 		id:       cnf.Name,
 		addr:     fmt.Sprintf("%s:%d", cnf.Host, cnf.Port),
 		childs:   make(map[string]child),
-		done:     make(chan bool, 1),
 		isServer: cnf.IsServer,
 		isLeader: cnf.IsLeader,
 		brothers: cnf.Replica,
+		isReady:  false,
 	}
 
 	if cnf.IsServer {
@@ -33,10 +34,35 @@ func Init(cnf Config) error {
 	}
 
 	if !cnf.IsLeader && len(cnf.Replica) > 0 {
+		var err error
+		var try int = 3
 		go func() {
-			MainErr <- a.Connect()
+			for {
+				err = a.Connect()
+				if try <= 0 {
+					MainErr <- err
+				}
+
+				try--
+				time.Sleep(time.Second * 1)
+			}
 		}()
 	}
 
 	return <-MainErr
+}
+
+func (a *agent) waitForReady() {
+	for {
+		if a.isReady {
+			return
+		}
+		time.Sleep(time.Second)
+	}
+}
+func (a *agent) ready() {
+	a.isReady = true
+}
+func (a *agent) unReady() {
+	a.isReady = false
 }

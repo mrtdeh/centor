@@ -63,8 +63,9 @@ func (a *agent) follow() error {
 		return fmt.Errorf("failed to send : %s\n", err.Error())
 	}
 
-	// set joining done
-	a.done <- true
+	// set ready to true
+	a.ready()
+	defer a.unReady()
 
 	// now ready for recieve any request from server
 	for {

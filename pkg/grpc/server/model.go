@@ -9,7 +9,7 @@ type agent struct {
 	isLeader bool
 	weight   int
 	parent   *parent // connection client -> server
-	done     chan bool
+	isReady  bool
 
 	brothers []string
 	childs   map[string]child
