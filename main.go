@@ -34,29 +34,4 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// if cnf.IsServer { // if mode is server
-
-	// 	s := server.Configs{
-	// 		Name:     cnf.Name,
-	// 		Host:     cnf.Host,
-	// 		Port:     cnf.Port,
-	// 		IsLeader: cnf.IsLeader,
-	// 		Replica:  serversAddrs,
-	// 	}
-	// 	err := s.Listen()
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-
-	// } else { // if mode is client
-
-	// 	c := client.Configs{
-	// 		Name:        cnf.Name,
-	// 		ServersAddr: serversAddrs,
-	// 	}
-	// 	if err := c.Connect(); err != nil {
-	// 		log.Fatal(err)
-	// 	}
-
-	// }
 }
