@@ -35,7 +35,7 @@ func Init(cnf Config) error {
 
 	if !cnf.IsLeader && len(cnf.Replica) > 0 {
 		var err error
-		var try int = 3
+		var try int = 10
 		go func() {
 			for {
 				err = a.Connect()
