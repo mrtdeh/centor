@@ -40,7 +40,7 @@ func (a *agent) CreateServiceProxy() {
 	a.waitForReady()
 
 	// create proxy request
-	if err := a.createProxy("service id", "local port"); err != nil {
+	if err := a.createProxy("service id"); err != nil {
 		log.Fatalf("error in proxy : %s", err.Error())
 	}
 
@@ -84,10 +84,11 @@ func (a *agent) CreateServiceProxy() {
 
 }
 
-func (c *agent) createProxy(target, port string) error {
+func (c *agent) createProxy(serviceId string) error {
 	_, err := c.parent.conn.CreateProxy(context.Background(), &proto.CreateProxyRequest{
-		TargetId:          target,
-		TargetServicePort: port,
+		// ServiceId: serviceId,
+		// TargetId:          target,
+		// TargetServicePort: port,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to proxy : %s\n", err.Error())
