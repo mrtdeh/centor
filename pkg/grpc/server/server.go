@@ -32,7 +32,7 @@ func Start(cnf Config) error {
 		var err error
 		go func() {
 			for {
-				err = a.Connect()
+				err = a.ConnectToParent()
 				if err != nil {
 					log.Println("failed to connect to server : ", err.Error())
 				}
@@ -41,9 +41,8 @@ func Start(cnf Config) error {
 		}()
 	}
 
-	if cnf.IsServer {
-		MainErr <- a.Listen()
-	}
+	// always listen for 3000
+	MainErr <- a.Listen()
 
 	return <-MainErr
 }

@@ -22,6 +22,9 @@ message JoinMessage {
   string addr = 2;
   bool is_server = 3;
 }
+message JoinBackMessage {
+  string id = 1;
+}
 
 
 
@@ -47,11 +50,15 @@ message CreateProxyRequest{
 }
 
 
+
+
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
-  rpc Follow(stream FollowerRequest) returns (stream LeaderResponse);
-
-  rpc CreateProxy(CreateProxyRequest) returns (Close);
+  rpc Join(JoinMessage) returns (Close);
+  rpc JoinBack(JoinBackMessage) returns (Close);
+  
+  // rpc Follow(stream FollowerRequest) returns (stream LeaderResponse);
+  // rpc CreateProxy(CreateProxyRequest) returns (Close);
 }
 
 // ================== Client Proxy Service ================

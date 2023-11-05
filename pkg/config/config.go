@@ -54,10 +54,10 @@ func LoadConfiguration() *Config {
 		log.Fatalf("Failed to compile configuration: %s", err)
 	}
 
-	flag.StringVar(&cnf.Name, "name", cnf.Name, "")
-	flag.StringVar(&cnf.Host, "host", cnf.Host, "")
-	flag.UintVar(&cnf.Port, "port", cnf.Port, "")
-	flag.StringVar(&cnf.ServersAddr, "servers-addr", cnf.ServersAddr, "")
+	flag.StringVar(&cnf.Name, "n", cnf.Name, "")
+	flag.StringVar(&cnf.Host, "h", cnf.Host, "")
+	flag.UintVar(&cnf.Port, "p", cnf.Port, "")
+	flag.StringVar(&cnf.ServersAddr, "join", cnf.ServersAddr, "")
 	flag.BoolVar(&cnf.IsServer, "server", cnf.IsServer, "")
 	flag.BoolVar(&cnf.IsLeader, "leader", cnf.IsLeader, "")
 	flag.Parse()

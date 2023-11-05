@@ -17,7 +17,7 @@ func main() {
 	if sd != "" {
 		serversAddrs = strings.Split(strings.TrimSpace(sd), ",")
 	}
-	// need to implment Start() to run for both server/client
+
 	err := server.Start(server.Config{
 		Name:     cnf.Name,
 		Host:     cnf.Host,

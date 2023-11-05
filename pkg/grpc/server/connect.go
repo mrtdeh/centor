@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func (a *agent) Connect() error {
+func (a *agent) ConnectToParent() error {
 	// master election for servers / best election for clients
 	var addr string
 	var err error
@@ -23,22 +23,29 @@ func (a *agent) Connect() error {
 		return err
 	}
 
-	a.parent = &parent{}
-
 	// dial to selected master
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("error in dial : %s", err.Error())
 	}
 	// create client object
-	a.parent.conn = proto.NewDiscoveryClient(conn)
-
-	// client do follow master
-	if err := a.follow(); err != nil {
-		return fmt.Errorf("error in follow : %s", err.Error())
+	a.parent = &parent{
+		stream: stream{
+			conn:  conn,
+			proto: proto.NewDiscoveryClient(conn),
+			err:   make(chan error, 1),
+		},
 	}
 
-	return nil
+	_, err = a.parent.proto.Join(context.Background(), &proto.JoinMessage{
+		Id:   a.id,
+		Addr: a.addr,
+	})
+	if err != nil {
+		return fmt.Errorf("error in join to server : %s", err.Error())
+	}
+
+	return <-a.parent.stream.err
 }
 
 func bestElect(addrs []string) (string, error) {

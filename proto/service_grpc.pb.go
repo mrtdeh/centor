@@ -23,8 +23,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DiscoveryClient interface {
 	GetInfo(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*InfoResponse, error)
-	Follow(ctx context.Context, opts ...grpc.CallOption) (Discovery_FollowClient, error)
-	CreateProxy(ctx context.Context, in *CreateProxyRequest, opts ...grpc.CallOption) (*Close, error)
+	Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error)
+	JoinBack(ctx context.Context, in *JoinBackMessage, opts ...grpc.CallOption) (*Close, error)
 }
 
 type discoveryClient struct {
@@ -44,40 +44,18 @@ func (c *discoveryClient) GetInfo(ctx context.Context, in *EmptyRequest, opts ..
 	return out, nil
 }
 
-func (c *discoveryClient) Follow(ctx context.Context, opts ...grpc.CallOption) (Discovery_FollowClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Discovery_ServiceDesc.Streams[0], "/proto.Discovery/Follow", opts...)
+func (c *discoveryClient) Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error) {
+	out := new(Close)
+	err := c.cc.Invoke(ctx, "/proto.Discovery/Join", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &discoveryFollowClient{stream}
-	return x, nil
+	return out, nil
 }
 
-type Discovery_FollowClient interface {
-	Send(*FollowerRequest) error
-	Recv() (*LeaderResponse, error)
-	grpc.ClientStream
-}
-
-type discoveryFollowClient struct {
-	grpc.ClientStream
-}
-
-func (x *discoveryFollowClient) Send(m *FollowerRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *discoveryFollowClient) Recv() (*LeaderResponse, error) {
-	m := new(LeaderResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *discoveryClient) CreateProxy(ctx context.Context, in *CreateProxyRequest, opts ...grpc.CallOption) (*Close, error) {
+func (c *discoveryClient) JoinBack(ctx context.Context, in *JoinBackMessage, opts ...grpc.CallOption) (*Close, error) {
 	out := new(Close)
-	err := c.cc.Invoke(ctx, "/proto.Discovery/CreateProxy", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Discovery/JoinBack", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +67,8 @@ func (c *discoveryClient) CreateProxy(ctx context.Context, in *CreateProxyReques
 // for forward compatibility
 type DiscoveryServer interface {
 	GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error)
-	Follow(Discovery_FollowServer) error
-	CreateProxy(context.Context, *CreateProxyRequest) (*Close, error)
+	Join(context.Context, *JoinMessage) (*Close, error)
+	JoinBack(context.Context, *JoinBackMessage) (*Close, error)
 }
 
 // UnimplementedDiscoveryServer should be embedded to have forward compatible implementations.
@@ -100,11 +78,11 @@ type UnimplementedDiscoveryServer struct {
 func (UnimplementedDiscoveryServer) GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfo not implemented")
 }
-func (UnimplementedDiscoveryServer) Follow(Discovery_FollowServer) error {
-	return status.Errorf(codes.Unimplemented, "method Follow not implemented")
+func (UnimplementedDiscoveryServer) Join(context.Context, *JoinMessage) (*Close, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Join not implemented")
 }
-func (UnimplementedDiscoveryServer) CreateProxy(context.Context, *CreateProxyRequest) (*Close, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateProxy not implemented")
+func (UnimplementedDiscoveryServer) JoinBack(context.Context, *JoinBackMessage) (*Close, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method JoinBack not implemented")
 }
 
 // UnsafeDiscoveryServer may be embedded to opt out of forward compatibility for this service.
@@ -136,46 +114,38 @@ func _Discovery_GetInfo_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Discovery_Follow_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(DiscoveryServer).Follow(&discoveryFollowServer{stream})
-}
-
-type Discovery_FollowServer interface {
-	Send(*LeaderResponse) error
-	Recv() (*FollowerRequest, error)
-	grpc.ServerStream
-}
-
-type discoveryFollowServer struct {
-	grpc.ServerStream
-}
-
-func (x *discoveryFollowServer) Send(m *LeaderResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *discoveryFollowServer) Recv() (*FollowerRequest, error) {
-	m := new(FollowerRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _Discovery_CreateProxy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateProxyRequest)
+func _Discovery_Join_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinMessage)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DiscoveryServer).CreateProxy(ctx, in)
+		return srv.(DiscoveryServer).Join(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.Discovery/CreateProxy",
+		FullMethod: "/proto.Discovery/Join",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DiscoveryServer).CreateProxy(ctx, req.(*CreateProxyRequest))
+		return srv.(DiscoveryServer).Join(ctx, req.(*JoinMessage))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Discovery_JoinBack_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinBackMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DiscoveryServer).JoinBack(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Discovery/JoinBack",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DiscoveryServer).JoinBack(ctx, req.(*JoinBackMessage))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -192,18 +162,15 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Discovery_GetInfo_Handler,
 		},
 		{
-			MethodName: "CreateProxy",
-			Handler:    _Discovery_CreateProxy_Handler,
+			MethodName: "Join",
+			Handler:    _Discovery_Join_Handler,
 		},
-	},
-	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Follow",
-			Handler:       _Discovery_Follow_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
+			MethodName: "JoinBack",
+			Handler:    _Discovery_JoinBack_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "proto/service.proto",
 }
 

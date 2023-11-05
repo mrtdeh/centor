@@ -1,6 +1,9 @@
 package grpc_server
 
-import "github.com/mrtdeh/centor/proto"
+import (
+	"github.com/mrtdeh/centor/proto"
+	"google.golang.org/grpc"
+)
 
 type agent struct {
 	id       string
@@ -8,21 +11,27 @@ type agent struct {
 	isServer bool
 	isLeader bool
 	weight   int
-	parent   *parent // connection client -> server
 	isReady  bool
 
 	brothers []string
+	parent   *parent
 	childs   map[string]child
 }
+
+type stream struct {
+	conn  *grpc.ClientConn
+	proto proto.DiscoveryClient
+	err   chan error
+}
+
 type parent struct {
-	conn     proto.DiscoveryClient
 	isLeader bool
+	stream
 }
 
 type child struct {
 	Id       string
 	Addr     string
 	IsServer bool
-	err      chan error
-	conn     proto.Discovery_FollowServer
+	stream
 }
