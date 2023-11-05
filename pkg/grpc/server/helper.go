@@ -68,6 +68,7 @@ func leaderElect(addrs []string) (string, error) {
 	return "", fmt.Errorf("leader not found")
 }
 
+// ======================================
 func (a *agent) checkParent() {
 	for {
 		status := a.parent.conn.GetState()
@@ -82,6 +83,7 @@ func (a *agent) parentErr() <-chan error {
 	return a.parent.stream.err
 }
 
+// ======================================
 func (a *agent) waitForReady() {
 	for {
 		if a.isReady {
