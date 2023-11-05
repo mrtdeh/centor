@@ -16,7 +16,9 @@ type Config struct {
 }
 
 func Start(cnf Config) error {
-	var MainErr chan error = make(chan error, 1)
+	if cnf.Host == "" {
+		cnf.Host = "127.0.0.1"
+	}
 
 	a := &agent{
 		id:       cnf.Name,
@@ -25,7 +27,6 @@ func Start(cnf Config) error {
 		isServer: cnf.IsServer,
 		isLeader: cnf.IsLeader,
 		brothers: cnf.Replica,
-		isReady:  false,
 	}
 
 	if !cnf.IsLeader && len(cnf.Replica) > 0 {
@@ -41,8 +42,5 @@ func Start(cnf Config) error {
 		}()
 	}
 
-	// always listen for 3000
-	MainErr <- a.Listen()
-
-	return <-MainErr
+	return a.Listen()
 }

@@ -40,6 +40,10 @@ type Config struct {
 	Services    []Service
 }
 
+var (
+	Verbose bool
+)
+
 func LoadConfiguration() *Config {
 
 	path := "/etc/centor.d/"
@@ -54,6 +58,7 @@ func LoadConfiguration() *Config {
 		log.Fatalf("Failed to compile configuration: %s", err)
 	}
 
+	flag.BoolVar(&Verbose, "v", false, "")
 	flag.StringVar(&cnf.Name, "n", cnf.Name, "")
 	flag.StringVar(&cnf.Host, "h", cnf.Host, "")
 	flag.UintVar(&cnf.Port, "p", cnf.Port, "")
@@ -63,7 +68,10 @@ func LoadConfiguration() *Config {
 	flag.Parse()
 
 	cb, _ := json.MarshalIndent(cnf, "", " ")
-	fmt.Printf("configs : %s\n", cb)
+
+	if Verbose {
+		fmt.Printf("%s\n", cb)
+	}
 
 	return cnf
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 func (s *agent) Join(ctx context.Context, req *proto.JoinMessage) (*proto.Close, error) {
@@ -33,14 +34,15 @@ func (s *agent) Join(ctx context.Context, req *proto.JoinMessage) (*proto.Close,
 				Id: s.id,
 			})
 			if err != nil {
-				log.Println("error in joinBack : ", err.Error())
-
+				s := status.Convert(err)
+				log.Println("error in joinBack : ", c.Addr, s.Code())
 			}
 			time.Sleep(time.Second * 10)
 		}
 	}()
 
 	s.childs[req.Id] = c
+	fmt.Printf("Added new client - ID=%s\n", req.Id)
 	s.weight++
 	return &proto.Close{}, nil
 }

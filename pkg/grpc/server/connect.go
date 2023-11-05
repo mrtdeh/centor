@@ -45,7 +45,9 @@ func (a *agent) ConnectToParent() error {
 		return fmt.Errorf("error in join to server : %s", err.Error())
 	}
 
-	return <-a.parent.stream.err
+	go a.checkParent()
+
+	return <-a.parentErr()
 }
 
 func bestElect(addrs []string) (string, error) {
