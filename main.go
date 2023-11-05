@@ -12,7 +12,7 @@ func main() {
 
 	cnf := config.LoadConfiguration()
 
-	var serversAddrs []string = nil
+	var serversAddrs []string
 	sd := cnf.ServersAddr
 	if sd != "" {
 		serversAddrs = strings.Split(strings.TrimSpace(sd), ",")
