@@ -49,15 +49,11 @@ message CreateProxyRequest{
   string target_service_port = 2;
 }
 
-message PingRequest{}
-message PongResponse{}
-
 
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
   rpc Join(JoinMessage) returns (Close);
   rpc JoinBack(JoinBackMessage) returns (Close);
-  rpc Ping(PingRequest) returns (PongResponse);
   // rpc Follow(stream FollowerRequest) returns (stream LeaderResponse);
   // rpc CreateProxy(CreateProxyRequest) returns (Close);
 }
