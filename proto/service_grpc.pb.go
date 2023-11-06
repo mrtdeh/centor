@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DiscoveryClient interface {
 	GetInfo(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*InfoResponse, error)
-	Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*JoinResponse, error)
+	Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error)
 }
 
 type discoveryClient struct {
@@ -43,8 +43,8 @@ func (c *discoveryClient) GetInfo(ctx context.Context, in *EmptyRequest, opts ..
 	return out, nil
 }
 
-func (c *discoveryClient) Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*JoinResponse, error) {
-	out := new(JoinResponse)
+func (c *discoveryClient) Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error) {
+	out := new(Close)
 	err := c.cc.Invoke(ctx, "/proto.Discovery/Join", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (c *discoveryClient) Join(ctx context.Context, in *JoinMessage, opts ...grp
 // for forward compatibility
 type DiscoveryServer interface {
 	GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error)
-	Join(context.Context, *JoinMessage) (*JoinResponse, error)
+	Join(context.Context, *JoinMessage) (*Close, error)
 }
 
 // UnimplementedDiscoveryServer should be embedded to have forward compatible implementations.
@@ -67,7 +67,7 @@ type UnimplementedDiscoveryServer struct {
 func (UnimplementedDiscoveryServer) GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfo not implemented")
 }
-func (UnimplementedDiscoveryServer) Join(context.Context, *JoinMessage) (*JoinResponse, error) {
+func (UnimplementedDiscoveryServer) Join(context.Context, *JoinMessage) (*Close, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Join not implemented")
 }
 

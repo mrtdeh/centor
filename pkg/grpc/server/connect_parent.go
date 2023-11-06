@@ -17,19 +17,19 @@ func (a *agent) ConnectToParent() error {
 	}
 
 	// master election for servers / best election for clients
-	var addr string
+	var si *ServerInfo
 	var err error
 	if a.isServer {
-		addr, err = leaderElect(a.servers)
+		si, err = leaderElect(a.servers)
 	} else {
-		addr, err = bestElect(a.servers)
+		si, err = bestElect(a.servers)
 	}
 	if err != nil {
 		return err
 	}
 
 	// dial to selected master
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(si.Addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("error in dial : %s", err.Error())
 	}
@@ -45,7 +45,7 @@ func (a *agent) ConnectToParent() error {
 	}
 
 	// call join rpc to parent server
-	res, err := a.parent.proto.Join(context.Background(), &proto.JoinMessage{
+	_, err = a.parent.proto.Join(context.Background(), &proto.JoinMessage{
 		Id:   a.id,
 		Addr: a.addr,
 	})
@@ -65,6 +65,6 @@ func (a *agent) ConnectToParent() error {
 		}
 	}()
 
-	fmt.Printf("Connect to server - ID=%s\n", res.ServerId)
+	fmt.Printf("Connect to server - ID=%s\n", si.Id)
 	return <-a.parentErr()
 }

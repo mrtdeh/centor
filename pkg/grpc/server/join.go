@@ -7,7 +7,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (a *agent) Join(ctx context.Context, req *proto.JoinMessage) (*proto.JoinResponse, error) {
+func (a *agent) Join(ctx context.Context, req *proto.JoinMessage) (*proto.Close, error) {
 	// Dial back to joined server
 	c := &child{
 		Id:       req.Id,
@@ -26,7 +26,5 @@ func (a *agent) Join(ctx context.Context, req *proto.JoinMessage) (*proto.JoinRe
 		}
 	}()
 
-	res := &proto.JoinResponse{ServerId: a.id}
-
-	return res, nil
+	return &proto.Close{}, nil
 }

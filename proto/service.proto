@@ -55,7 +55,7 @@ message CreateProxyRequest{
 
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
-  rpc Join(JoinMessage) returns (JoinResponse);
+  rpc Join(JoinMessage) returns (Close);
   // rpc JoinBack(JoinBackMessage) returns (Close);
   // rpc Follow(stream FollowerRequest) returns (stream LeaderResponse);
   // rpc CreateProxy(CreateProxyRequest) returns (Close);
