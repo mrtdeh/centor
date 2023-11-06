@@ -13,15 +13,16 @@ type agent struct {
 	weight   int
 	isReady  bool
 
-	brothers []string
-	parent   *parent
-	childs   map[string]child
+	servers []string
+	parent  *parent
+	childs  map[string]*child
 }
 
 type stream struct {
 	conn  *grpc.ClientConn
 	proto proto.DiscoveryClient
 	err   chan error
+	close chan bool
 }
 
 type parent struct {

@@ -23,8 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DiscoveryClient interface {
 	GetInfo(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*InfoResponse, error)
-	Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error)
-	JoinBack(ctx context.Context, in *JoinBackMessage, opts ...grpc.CallOption) (*Close, error)
+	Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*JoinResponse, error)
 }
 
 type discoveryClient struct {
@@ -44,18 +43,9 @@ func (c *discoveryClient) GetInfo(ctx context.Context, in *EmptyRequest, opts ..
 	return out, nil
 }
 
-func (c *discoveryClient) Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error) {
-	out := new(Close)
+func (c *discoveryClient) Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*JoinResponse, error) {
+	out := new(JoinResponse)
 	err := c.cc.Invoke(ctx, "/proto.Discovery/Join", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *discoveryClient) JoinBack(ctx context.Context, in *JoinBackMessage, opts ...grpc.CallOption) (*Close, error) {
-	out := new(Close)
-	err := c.cc.Invoke(ctx, "/proto.Discovery/JoinBack", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +57,7 @@ func (c *discoveryClient) JoinBack(ctx context.Context, in *JoinBackMessage, opt
 // for forward compatibility
 type DiscoveryServer interface {
 	GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error)
-	Join(context.Context, *JoinMessage) (*Close, error)
-	JoinBack(context.Context, *JoinBackMessage) (*Close, error)
+	Join(context.Context, *JoinMessage) (*JoinResponse, error)
 }
 
 // UnimplementedDiscoveryServer should be embedded to have forward compatible implementations.
@@ -78,11 +67,8 @@ type UnimplementedDiscoveryServer struct {
 func (UnimplementedDiscoveryServer) GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfo not implemented")
 }
-func (UnimplementedDiscoveryServer) Join(context.Context, *JoinMessage) (*Close, error) {
+func (UnimplementedDiscoveryServer) Join(context.Context, *JoinMessage) (*JoinResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Join not implemented")
-}
-func (UnimplementedDiscoveryServer) JoinBack(context.Context, *JoinBackMessage) (*Close, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method JoinBack not implemented")
 }
 
 // UnsafeDiscoveryServer may be embedded to opt out of forward compatibility for this service.
@@ -132,24 +118,6 @@ func _Discovery_Join_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Discovery_JoinBack_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JoinBackMessage)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DiscoveryServer).JoinBack(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.Discovery/JoinBack",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DiscoveryServer).JoinBack(ctx, req.(*JoinBackMessage))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Discovery_ServiceDesc is the grpc.ServiceDesc for Discovery service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -164,10 +132,6 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Join",
 			Handler:    _Discovery_Join_Handler,
-		},
-		{
-			MethodName: "JoinBack",
-			Handler:    _Discovery_JoinBack_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -23,10 +23,10 @@ func Start(cnf Config) error {
 	a := &agent{
 		id:       cnf.Name,
 		addr:     fmt.Sprintf("%s:%d", cnf.Host, cnf.Port),
-		childs:   make(map[string]child),
+		childs:   make(map[string]*child),
 		isServer: cnf.IsServer,
 		isLeader: cnf.IsLeader,
-		brothers: cnf.Replica,
+		servers:  cnf.Replica,
 	}
 
 	if !cnf.IsLeader && len(cnf.Replica) > 0 {
