@@ -55,7 +55,7 @@ func (a *agent) ConnectToParent() error {
 	// run health check service for parent server
 	go func() {
 		for {
-			if err := ConnIsFailed(a.parent.conn); err != nil {
+			if err := connIsFailed(a.parent.conn); err != nil {
 				a.parent.stream.err <- fmt.Errorf("Closed parent - ID=%s", si.Id)
 				return
 			}

@@ -30,7 +30,7 @@ func (a *agent) ConnectToChild(c *child) error {
 		go func() {
 			client := a.childs[c.Id]
 			for {
-				if err := ConnIsFailed(client.conn); err != nil {
+				if err := connIsFailed(client.conn); err != nil {
 					client.stream.err <- fmt.Errorf("Closed client - ID=%s", client.Id)
 					return
 				}

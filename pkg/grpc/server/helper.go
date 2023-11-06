@@ -24,7 +24,7 @@ func (a *agent) parentErr() <-chan error {
 }
 
 // =======================================
-func ConnIsFailed(conn *grpc.ClientConn) error {
+func connIsFailed(conn *grpc.ClientConn) error {
 	status := conn.GetState()
 	if status == connectivity.TransientFailure ||
 		status == connectivity.Idle ||
