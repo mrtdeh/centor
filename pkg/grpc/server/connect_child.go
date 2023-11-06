@@ -1,12 +1,12 @@
 package grpc_server
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -28,13 +28,15 @@ func (a *agent) ConnectToChild(c *child) error {
 		a.childs[c.Id] = cc
 
 		go func() {
-			c := a.childs[c.Id]
+			client := a.childs[c.Id]
 			for {
-				status := c.conn.GetState()
-				if status == connectivity.TransientFailure ||
-					status == connectivity.Idle ||
-					status == connectivity.Shutdown {
-					c.stream.err <- fmt.Errorf("error child connection status : %s", status)
+				if err := ConnIsFailed(client.conn); err != nil {
+					client.stream.err <- fmt.Errorf("Closed client - ID=%s", client.Id)
+					return
+				}
+				_, err := client.proto.Ping(context.Background(), &proto.PingRequest{})
+				if err != nil {
+					a.parent.stream.err <- fmt.Errorf("error parent ping : %s", err.Error())
 					return
 				}
 				time.Sleep(time.Second * 2)

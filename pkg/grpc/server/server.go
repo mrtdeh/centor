@@ -2,7 +2,6 @@ package grpc_server
 
 import (
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -35,7 +34,7 @@ func Start(cnf Config) error {
 			for {
 				err = a.ConnectToParent()
 				if err != nil {
-					log.Println("failed to connect to server : ", err.Error())
+					fmt.Println(err.Error())
 				}
 				time.Sleep(time.Second * 1)
 			}

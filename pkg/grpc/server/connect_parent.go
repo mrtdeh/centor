@@ -7,7 +7,6 @@ import (
 
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -56,9 +55,13 @@ func (a *agent) ConnectToParent() error {
 	// run health check service for parent server
 	go func() {
 		for {
-			status := a.parent.conn.GetState()
-			if status != connectivity.Ready {
-				a.parent.stream.err <- fmt.Errorf("error parent connection status : %s", status)
+			if err := ConnIsFailed(a.parent.conn); err != nil {
+				a.parent.stream.err <- fmt.Errorf("Closed parent - ID=%s", si.Id)
+				return
+			}
+			_, err := a.parent.proto.Ping(context.Background(), &proto.PingRequest{})
+			if err != nil {
+				a.parent.stream.err <- fmt.Errorf("error parent ping : %s", err.Error())
 				return
 			}
 			time.Sleep(time.Second * 2)

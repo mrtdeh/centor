@@ -2,7 +2,7 @@ package grpc_server
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/mrtdeh/centor/proto"
 )
@@ -21,7 +21,7 @@ func (a *agent) Join(ctx context.Context, req *proto.JoinMessage) (*proto.Close,
 	go func() {
 		err := a.ConnectToChild(c)
 		if err != nil {
-			log.Printf("child %s is dead : %s\n", c.Id, err.Error())
+			fmt.Println(err.Error())
 			a.CloseChild(c)
 		}
 	}()

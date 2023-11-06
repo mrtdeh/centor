@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
 
@@ -23,18 +24,14 @@ func (a *agent) parentErr() <-chan error {
 }
 
 // =======================================
-func (c *child) checkChild() {
-	for {
-		status := c.conn.GetState()
-		// fmt.Println("status : ", status)
-		if status == connectivity.TransientFailure ||
-			status == connectivity.Idle ||
-			status == connectivity.Shutdown {
-			c.stream.err <- fmt.Errorf("error child connection status : %s", status)
-			return
-		}
-		time.Sleep(time.Second * 2)
+func ConnIsFailed(conn *grpc.ClientConn) error {
+	status := conn.GetState()
+	if status == connectivity.TransientFailure ||
+		status == connectivity.Idle ||
+		status == connectivity.Shutdown {
+		return fmt.Errorf("connection is failed with status %s", status)
 	}
+	return nil
 }
 
 func (c *child) childErr() <-chan error {
