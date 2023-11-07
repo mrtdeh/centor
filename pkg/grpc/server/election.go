@@ -33,11 +33,11 @@ func bestElect(addrs []string) (*ServerInfo, error) {
 			fmt.Println("failed to get info from  :", a)
 			continue
 		}
-		si = &ServerInfo{res.Id, a}
 
 		if res.Weight < int32(weight) {
 			weight = int(res.Weight)
 			index = i
+			si = &ServerInfo{res.Id, a}
 			conn.Close()
 		}
 
