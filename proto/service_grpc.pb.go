@@ -25,6 +25,7 @@ type DiscoveryClient interface {
 	GetInfo(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*InfoResponse, error)
 	Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error)
+	Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
 }
 
 type discoveryClient struct {
@@ -62,6 +63,15 @@ func (c *discoveryClient) Ping(ctx context.Context, in *PingRequest, opts ...grp
 	return out, nil
 }
 
+func (c *discoveryClient) Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error) {
+	out := new(CallResponse)
+	err := c.cc.Invoke(ctx, "/proto.Discovery/Call", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DiscoveryServer is the server API for Discovery service.
 // All implementations should embed UnimplementedDiscoveryServer
 // for forward compatibility
@@ -69,6 +79,7 @@ type DiscoveryServer interface {
 	GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error)
 	Join(context.Context, *JoinMessage) (*Close, error)
 	Ping(context.Context, *PingRequest) (*PongResponse, error)
+	Call(context.Context, *CallRequest) (*CallResponse, error)
 }
 
 // UnimplementedDiscoveryServer should be embedded to have forward compatible implementations.
@@ -83,6 +94,9 @@ func (UnimplementedDiscoveryServer) Join(context.Context, *JoinMessage) (*Close,
 }
 func (UnimplementedDiscoveryServer) Ping(context.Context, *PingRequest) (*PongResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedDiscoveryServer) Call(context.Context, *CallRequest) (*CallResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
 }
 
 // UnsafeDiscoveryServer may be embedded to opt out of forward compatibility for this service.
@@ -150,6 +164,24 @@ func _Discovery_Ping_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Discovery_Call_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DiscoveryServer).Call(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Discovery/Call",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DiscoveryServer).Call(ctx, req.(*CallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Discovery_ServiceDesc is the grpc.ServiceDesc for Discovery service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -168,6 +200,10 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Ping",
 			Handler:    _Discovery_Ping_Handler,
+		},
+		{
+			MethodName: "Call",
+			Handler:    _Discovery_Call_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

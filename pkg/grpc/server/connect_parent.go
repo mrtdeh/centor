@@ -36,6 +36,7 @@ func (a *agent) ConnectToParent() error {
 
 	// create parent object
 	a.parent = &parent{
+		id: si.Id,
 		stream: stream{
 			conn:  conn,
 			proto: proto.NewDiscoveryClient(conn),

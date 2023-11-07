@@ -1,8 +1,12 @@
 package grpc_server
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"time"
+
+	"github.com/mrtdeh/centor/proto"
 )
 
 type Config struct {
@@ -38,6 +42,19 @@ func Start(cnf Config) error {
 				}
 				time.Sleep(time.Second * 1)
 			}
+		}()
+	}
+
+	if cnf.Name == "test-call" {
+		go func() {
+			time.Sleep(time.Second * 3)
+			res, err := a.parent.proto.Call(context.Background(), &proto.CallRequest{
+				AgentId: a.id,
+			})
+			if err != nil {
+				log.Fatal("error in call : ", err.Error())
+			}
+			log.Println("tags : ", res.Tags)
 		}()
 	}
 

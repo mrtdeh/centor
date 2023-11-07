@@ -26,6 +26,7 @@ type stream struct {
 }
 
 type parent struct {
+	id       string
 	isLeader bool
 	stream
 }
