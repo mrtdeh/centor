@@ -41,5 +41,18 @@ func Start(cnf Config) error {
 		}()
 	}
 
+	// if cnf.Name == "test-call" {
+	// 	go func() {
+	// 		time.Sleep(time.Second * 3)
+	// 		res, err := a.parent.proto.Call(context.Background(), &proto.CallRequest{
+	// 			AgentId: a.id,
+	// 		})
+	// 		if err != nil {
+	// 			log.Fatal("error in call : ", err.Error())
+	// 		}
+	// 		log.Println("tags : ", res.Tags)
+	// 	}()
+	// }
+
 	return a.Listen()
 }

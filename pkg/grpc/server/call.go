@@ -11,17 +11,15 @@ func (a *agent) Call(ctx context.Context, req *proto.CallRequest) (*proto.CallRe
 	var tags []string
 	tags = append(tags, a.id)
 
-	if a.parent != nil && a.isServer {
-		if a.parent.id != req.AgentId {
+	if a.parent != nil && a.parent.id != req.AgentId {
 
-			res, err := a.parent.proto.Call(context.Background(), &proto.CallRequest{
-				AgentId: a.id,
-			})
-			if err != nil {
-				log.Fatal("error in call parent :", err.Error())
-			}
-			tags = append(tags, res.Tags...)
+		res, err := a.parent.proto.Call(context.Background(), &proto.CallRequest{
+			AgentId: a.id,
+		})
+		if err != nil {
+			log.Fatal("error in call parent :", err.Error())
 		}
+		tags = append(tags, res.Tags...)
 	}
 
 	if a.childs != nil {

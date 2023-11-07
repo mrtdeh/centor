@@ -57,11 +57,9 @@ func (a *agent) unReady() {
 }
 
 func (a *agent) CloseChild(c *child) error {
-	// return c.conn.Close()
-	child, ok := a.childs[c.Id]
-	if !ok {
-		return fmt.Errorf("child %s is not exist", child.Id)
+	if _, ok := a.childs[c.Id]; !ok {
+		return fmt.Errorf("child %s is not exist", c.Id)
 	}
-	delete(a.childs, child.Id)
+	delete(a.childs, c.Id)
 	return nil
 }
