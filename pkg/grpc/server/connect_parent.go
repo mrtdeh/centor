@@ -69,6 +69,8 @@ func (a *agent) ConnectToParent() error {
 		}
 	}()
 
+	// @@@ we can add Sync function to connect bi-directional to server
+
 	fmt.Printf("Connect to server - ID=%s\n", si.Id)
 	return <-a.parentErr()
 }
