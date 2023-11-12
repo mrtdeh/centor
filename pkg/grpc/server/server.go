@@ -32,10 +32,12 @@ func Start(cnf Config) error {
 		var err error
 		go func() {
 			for {
+				// try connect to parent server
 				err = a.ConnectToParent()
 				if err != nil {
 					fmt.Println(err.Error())
 				}
+				// retry delay time
 				time.Sleep(time.Second * 1)
 			}
 		}()

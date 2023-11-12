@@ -19,15 +19,17 @@ func (a *agent) ConnectToParent() error {
 	var si *ServerInfo
 	var err error
 	if a.isServer {
+		// select leader only
 		si, err = leaderElect(a.servers)
 	} else {
+		// select best server in server's pool
 		si, err = bestElect(a.servers)
 	}
 	if err != nil {
 		return err
 	}
 
-	// dial to selected master
+	// dial to selected server
 	conn, err := grpc.Dial(si.Addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("error in dial : %s", err.Error())
@@ -44,7 +46,7 @@ func (a *agent) ConnectToParent() error {
 		},
 	}
 
-	// call join rpc to parent server
+	// join to parent server
 	_, err = a.parent.proto.Join(context.Background(), &proto.JoinMessage{
 		Id:   a.id,
 		Addr: a.addr,
@@ -53,21 +55,8 @@ func (a *agent) ConnectToParent() error {
 		return fmt.Errorf("error in join to server : %s", err.Error())
 	}
 
-	// run health check service for parent server
-	go func() {
-		for {
-			if err := connIsFailed(a.parent.conn); err != nil {
-				a.parent.stream.err <- fmt.Errorf("Closed parent - ID=%s", si.Id)
-				return
-			}
-			_, err := a.parent.proto.Ping(context.Background(), &proto.PingRequest{})
-			if err != nil {
-				a.parent.stream.err <- fmt.Errorf("error parent ping : %s", err.Error())
-				return
-			}
-			time.Sleep(time.Second * 2)
-		}
-	}()
+	// health check conenction for parent server
+	go connHealthCheck(&a.parent.stream, time.Second*2)
 
 	// @@@ we can add Sync function to connect bi-directional to server
 

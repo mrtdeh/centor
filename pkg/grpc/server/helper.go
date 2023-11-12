@@ -1,9 +1,11 @@
 package grpc_server
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
@@ -24,15 +26,6 @@ func (a *agent) parentErr() <-chan error {
 }
 
 // =======================================
-func connIsFailed(conn *grpc.ClientConn) error {
-	status := conn.GetState()
-	if status == connectivity.TransientFailure ||
-		status == connectivity.Idle ||
-		status == connectivity.Shutdown {
-		return fmt.Errorf("connection is failed with status %s", status)
-	}
-	return nil
-}
 
 func (c *child) childErr() <-chan error {
 	return c.stream.err
@@ -61,5 +54,31 @@ func (a *agent) CloseChild(c *child) error {
 		return fmt.Errorf("child %s is not exist", c.Id)
 	}
 	delete(a.childs, c.Id)
+	return nil
+}
+
+// ========================== HEALTH CHECK =========================
+func connHealthCheck(s *stream, d time.Duration) {
+	for {
+		if err := connIsFailed(s.conn); err != nil {
+			s.err <- err
+			return
+		}
+		_, err := s.proto.Ping(context.Background(), &proto.PingRequest{})
+		if err != nil {
+			s.err <- err
+			return
+		}
+		time.Sleep(d)
+	}
+}
+
+func connIsFailed(conn *grpc.ClientConn) error {
+	status := conn.GetState()
+	if status == connectivity.TransientFailure ||
+		// status == connectivity.Idle ||
+		status == connectivity.Shutdown {
+		return fmt.Errorf("connection is failed with status %s", status)
+	}
 	return nil
 }

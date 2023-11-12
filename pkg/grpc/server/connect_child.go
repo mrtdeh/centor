@@ -1,7 +1,6 @@
 package grpc_server
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -20,33 +19,17 @@ func (a *agent) ConnectToChild(c *child) error {
 
 	// create child object
 	if cc, ok := a.childs[c.Id]; ok {
+		// store client connection and proto info
 		cc.stream = stream{
 			conn:  conn,
 			proto: proto.NewDiscoveryClient(conn),
 			err:   make(chan error, 1),
 		}
-		a.childs[c.Id] = cc
-
-		go func() {
-			client := a.childs[c.Id]
-			for {
-				if err := connIsFailed(client.conn); err != nil {
-					client.stream.err <- fmt.Errorf("Closed client - ID=%s", client.Id)
-					return
-				}
-				_, err := client.proto.Ping(context.Background(), &proto.PingRequest{})
-				if err != nil {
-					a.parent.stream.err <- fmt.Errorf("error parent ping : %s", err.Error())
-					return
-				}
-				time.Sleep(time.Second * 2)
-			}
-		}()
+		// run health check conenction for this child
+		go connHealthCheck(&cc.stream, time.Second*2)
 	} else {
 		return fmt.Errorf("child you want to check not exist")
 	}
-
-	// run health check service for this child
 
 	fmt.Printf("Added new client - ID=%s\n", c.Id)
 	return <-c.childErr()
