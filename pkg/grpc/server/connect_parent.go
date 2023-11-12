@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/mrtdeh/centor/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func (a *agent) ConnectToParent() error {
@@ -30,9 +28,9 @@ func (a *agent) ConnectToParent() error {
 	}
 
 	// dial to selected server
-	conn, err := grpc.Dial(si.Addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpcDial(si.Addr)
 	if err != nil {
-		return fmt.Errorf("error in dial : %s", err.Error())
+		return err
 	}
 	defer conn.Close()
 

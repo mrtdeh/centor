@@ -8,6 +8,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func (a *agent) checkParent() {
@@ -81,4 +82,13 @@ func connIsFailed(conn *grpc.ClientConn) error {
 		return fmt.Errorf("connection is failed with status %s", status)
 	}
 	return nil
+}
+
+// =============================================================
+func grpcDial(addr string) (*grpc.ClientConn, error) {
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, fmt.Errorf("error in dial : %s", err.Error())
+	}
+	return conn, nil
 }
