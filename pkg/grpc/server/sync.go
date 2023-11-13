@@ -17,8 +17,9 @@ func (a *agent) Sync(stream proto.Discovery_SyncServer) error {
 		defer func() {
 			// decrease weight when client connection have error
 			if joined {
-				fmt.Printf("Disconnect client - ID=%s\n", c.Id)
 				a.weight--
+				c.stream.err <- fmt.Errorf("client disconnected")
+				fmt.Printf("Disconnect client - ID=%s\n", c.Id)
 			}
 		}()
 
@@ -38,7 +39,7 @@ func (a *agent) Sync(stream proto.Discovery_SyncServer) error {
 			a.childs[join.Id] = c
 			a.weight++
 			joined = true
-
+			fmt.Printf("Added new client - ID=%s\n", c.Id)
 			// Dial back to joined server
 			go func() {
 				err := a.ConnectToChild(c)

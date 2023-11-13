@@ -29,6 +29,6 @@ func (a *agent) ConnectToChild(c *child) error {
 		return fmt.Errorf("child you want to check not exist")
 	}
 
-	fmt.Printf("Added new client - ID=%s\n", c.Id)
+	fmt.Printf("Connect back to - ID=%s\n", c.Id)
 	return <-c.childErr()
 }
