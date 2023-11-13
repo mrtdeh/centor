@@ -9,7 +9,7 @@ import (
 
 func (a *agent) ConnectToChild(c *child) error {
 	// dial to child listener
-	conn, err := grpcDial(c.Addr)
+	conn, err := grpc_Dial(c.Addr)
 	if err != nil {
 		return err
 	}

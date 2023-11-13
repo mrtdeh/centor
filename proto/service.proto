@@ -22,9 +22,7 @@ message JoinMessage {
   string addr = 2;
   bool is_server = 3;
 }
-message JoinResponse{
-  string server_id = 1;
-}
+
 // message JoinBackMessage {
 //   string id = 1;
 // }
@@ -62,9 +60,16 @@ message CallResponse{
   repeated string tags = 1;
 }
 
+message SyncMessage{
+  oneof data{
+    JoinMessage join_msg = 1; 
+  }
+}
+
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
   rpc Join(JoinMessage) returns (Close);
+  rpc Sync(stream SyncMessage) returns (Close);   // alternative for join 
   rpc Ping(PingRequest) returns (PongResponse);
   rpc Call(CallRequest) returns (CallResponse);
   // rpc JoinBack(JoinBackMessage) returns (Close);

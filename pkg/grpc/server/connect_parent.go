@@ -28,7 +28,7 @@ func (a *agent) ConnectToParent() error {
 	}
 
 	// dial to selected server
-	conn, err := grpcDial(si.Addr)
+	conn, err := grpc_Dial(si.Addr)
 	if err != nil {
 		return err
 	}
@@ -44,13 +44,10 @@ func (a *agent) ConnectToParent() error {
 		},
 	}
 
-	// join to parent server
-	_, err = a.parent.proto.Join(context.Background(), &proto.JoinMessage{
-		Id:   a.id,
-		Addr: a.addr,
-	})
+	// create sync stream rpc to parent server
+	err = grpc_SyncToParent(context.Background(), &a.parent.stream, a.id, a.addr)
 	if err != nil {
-		return fmt.Errorf("error in join to server : %s", err.Error())
+		return fmt.Errorf("error in sync : %s", err.Error())
 	}
 
 	// health check conenction for parent server

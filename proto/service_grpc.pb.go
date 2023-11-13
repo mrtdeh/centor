@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type DiscoveryClient interface {
 	GetInfo(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*InfoResponse, error)
 	Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error)
+	Sync(ctx context.Context, opts ...grpc.CallOption) (Discovery_SyncClient, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error)
 	Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
 }
@@ -54,6 +55,40 @@ func (c *discoveryClient) Join(ctx context.Context, in *JoinMessage, opts ...grp
 	return out, nil
 }
 
+func (c *discoveryClient) Sync(ctx context.Context, opts ...grpc.CallOption) (Discovery_SyncClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Discovery_ServiceDesc.Streams[0], "/proto.Discovery/Sync", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &discoverySyncClient{stream}
+	return x, nil
+}
+
+type Discovery_SyncClient interface {
+	Send(*SyncMessage) error
+	CloseAndRecv() (*Close, error)
+	grpc.ClientStream
+}
+
+type discoverySyncClient struct {
+	grpc.ClientStream
+}
+
+func (x *discoverySyncClient) Send(m *SyncMessage) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *discoverySyncClient) CloseAndRecv() (*Close, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Close)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *discoveryClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error) {
 	out := new(PongResponse)
 	err := c.cc.Invoke(ctx, "/proto.Discovery/Ping", in, out, opts...)
@@ -78,6 +113,7 @@ func (c *discoveryClient) Call(ctx context.Context, in *CallRequest, opts ...grp
 type DiscoveryServer interface {
 	GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error)
 	Join(context.Context, *JoinMessage) (*Close, error)
+	Sync(Discovery_SyncServer) error
 	Ping(context.Context, *PingRequest) (*PongResponse, error)
 	Call(context.Context, *CallRequest) (*CallResponse, error)
 }
@@ -91,6 +127,9 @@ func (UnimplementedDiscoveryServer) GetInfo(context.Context, *EmptyRequest) (*In
 }
 func (UnimplementedDiscoveryServer) Join(context.Context, *JoinMessage) (*Close, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Join not implemented")
+}
+func (UnimplementedDiscoveryServer) Sync(Discovery_SyncServer) error {
+	return status.Errorf(codes.Unimplemented, "method Sync not implemented")
 }
 func (UnimplementedDiscoveryServer) Ping(context.Context, *PingRequest) (*PongResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -144,6 +183,32 @@ func _Discovery_Join_Handler(srv interface{}, ctx context.Context, dec func(inte
 		return srv.(DiscoveryServer).Join(ctx, req.(*JoinMessage))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _Discovery_Sync_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DiscoveryServer).Sync(&discoverySyncServer{stream})
+}
+
+type Discovery_SyncServer interface {
+	SendAndClose(*Close) error
+	Recv() (*SyncMessage, error)
+	grpc.ServerStream
+}
+
+type discoverySyncServer struct {
+	grpc.ServerStream
+}
+
+func (x *discoverySyncServer) SendAndClose(m *Close) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *discoverySyncServer) Recv() (*SyncMessage, error) {
+	m := new(SyncMessage)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _Discovery_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -206,7 +271,13 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Discovery_Call_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Sync",
+			Handler:       _Discovery_Sync_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "proto/service.proto",
 }
 

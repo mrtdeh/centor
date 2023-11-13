@@ -85,10 +85,31 @@ func connIsFailed(conn *grpc.ClientConn) error {
 }
 
 // =============================================================
-func grpcDial(addr string) (*grpc.ClientConn, error) {
+func grpc_Dial(addr string) (*grpc.ClientConn, error) {
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("error in dial : %s", err.Error())
 	}
 	return conn, nil
+}
+
+func grpc_SyncToParent(ctx context.Context, parentStream *stream, agentId, agentAddr string) error {
+	str, err := parentStream.proto.Sync(ctx)
+	if err != nil {
+		return fmt.Errorf("error in create sync stream : %s", err.Error())
+	}
+	// send sync message to parent server
+	err = str.Send(&proto.SyncMessage{
+		Data: &proto.SyncMessage_JoinMsg{
+			JoinMsg: &proto.JoinMessage{
+				Id:   agentId,
+				Addr: agentAddr,
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error in send sync message : %s", err.Error())
+	}
+
+	return nil
 }
