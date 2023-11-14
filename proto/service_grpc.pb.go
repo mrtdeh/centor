@@ -23,8 +23,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DiscoveryClient interface {
 	GetInfo(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*InfoResponse, error)
-	Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error)
-	Sync(ctx context.Context, opts ...grpc.CallOption) (Discovery_SyncClient, error)
+	Connect(ctx context.Context, opts ...grpc.CallOption) (Discovery_ConnectClient, error)
+	ConnectBack(ctx context.Context, opts ...grpc.CallOption) (Discovery_ConnectBackClient, error)
+	// rpc Sync(stream SyncMessage) returns (Close);   // alternative for join
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error)
 	Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
 }
@@ -46,39 +47,64 @@ func (c *discoveryClient) GetInfo(ctx context.Context, in *EmptyRequest, opts ..
 	return out, nil
 }
 
-func (c *discoveryClient) Join(ctx context.Context, in *JoinMessage, opts ...grpc.CallOption) (*Close, error) {
-	out := new(Close)
-	err := c.cc.Invoke(ctx, "/proto.Discovery/Join", in, out, opts...)
+func (c *discoveryClient) Connect(ctx context.Context, opts ...grpc.CallOption) (Discovery_ConnectClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Discovery_ServiceDesc.Streams[0], "/proto.Discovery/Connect", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
-}
-
-func (c *discoveryClient) Sync(ctx context.Context, opts ...grpc.CallOption) (Discovery_SyncClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Discovery_ServiceDesc.Streams[0], "/proto.Discovery/Sync", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &discoverySyncClient{stream}
+	x := &discoveryConnectClient{stream}
 	return x, nil
 }
 
-type Discovery_SyncClient interface {
-	Send(*SyncMessage) error
+type Discovery_ConnectClient interface {
+	Send(*ConnectMessage) error
 	CloseAndRecv() (*Close, error)
 	grpc.ClientStream
 }
 
-type discoverySyncClient struct {
+type discoveryConnectClient struct {
 	grpc.ClientStream
 }
 
-func (x *discoverySyncClient) Send(m *SyncMessage) error {
+func (x *discoveryConnectClient) Send(m *ConnectMessage) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *discoverySyncClient) CloseAndRecv() (*Close, error) {
+func (x *discoveryConnectClient) CloseAndRecv() (*Close, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Close)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *discoveryClient) ConnectBack(ctx context.Context, opts ...grpc.CallOption) (Discovery_ConnectBackClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Discovery_ServiceDesc.Streams[1], "/proto.Discovery/ConnectBack", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &discoveryConnectBackClient{stream}
+	return x, nil
+}
+
+type Discovery_ConnectBackClient interface {
+	Send(*ConnectBackMessage) error
+	CloseAndRecv() (*Close, error)
+	grpc.ClientStream
+}
+
+type discoveryConnectBackClient struct {
+	grpc.ClientStream
+}
+
+func (x *discoveryConnectBackClient) Send(m *ConnectBackMessage) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *discoveryConnectBackClient) CloseAndRecv() (*Close, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -112,8 +138,9 @@ func (c *discoveryClient) Call(ctx context.Context, in *CallRequest, opts ...grp
 // for forward compatibility
 type DiscoveryServer interface {
 	GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error)
-	Join(context.Context, *JoinMessage) (*Close, error)
-	Sync(Discovery_SyncServer) error
+	Connect(Discovery_ConnectServer) error
+	ConnectBack(Discovery_ConnectBackServer) error
+	// rpc Sync(stream SyncMessage) returns (Close);   // alternative for join
 	Ping(context.Context, *PingRequest) (*PongResponse, error)
 	Call(context.Context, *CallRequest) (*CallResponse, error)
 }
@@ -125,11 +152,11 @@ type UnimplementedDiscoveryServer struct {
 func (UnimplementedDiscoveryServer) GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfo not implemented")
 }
-func (UnimplementedDiscoveryServer) Join(context.Context, *JoinMessage) (*Close, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Join not implemented")
+func (UnimplementedDiscoveryServer) Connect(Discovery_ConnectServer) error {
+	return status.Errorf(codes.Unimplemented, "method Connect not implemented")
 }
-func (UnimplementedDiscoveryServer) Sync(Discovery_SyncServer) error {
-	return status.Errorf(codes.Unimplemented, "method Sync not implemented")
+func (UnimplementedDiscoveryServer) ConnectBack(Discovery_ConnectBackServer) error {
+	return status.Errorf(codes.Unimplemented, "method ConnectBack not implemented")
 }
 func (UnimplementedDiscoveryServer) Ping(context.Context, *PingRequest) (*PongResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -167,44 +194,52 @@ func _Discovery_GetInfo_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Discovery_Join_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JoinMessage)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DiscoveryServer).Join(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.Discovery/Join",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DiscoveryServer).Join(ctx, req.(*JoinMessage))
-	}
-	return interceptor(ctx, in, info, handler)
+func _Discovery_Connect_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DiscoveryServer).Connect(&discoveryConnectServer{stream})
 }
 
-func _Discovery_Sync_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(DiscoveryServer).Sync(&discoverySyncServer{stream})
-}
-
-type Discovery_SyncServer interface {
+type Discovery_ConnectServer interface {
 	SendAndClose(*Close) error
-	Recv() (*SyncMessage, error)
+	Recv() (*ConnectMessage, error)
 	grpc.ServerStream
 }
 
-type discoverySyncServer struct {
+type discoveryConnectServer struct {
 	grpc.ServerStream
 }
 
-func (x *discoverySyncServer) SendAndClose(m *Close) error {
+func (x *discoveryConnectServer) SendAndClose(m *Close) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *discoverySyncServer) Recv() (*SyncMessage, error) {
-	m := new(SyncMessage)
+func (x *discoveryConnectServer) Recv() (*ConnectMessage, error) {
+	m := new(ConnectMessage)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _Discovery_ConnectBack_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DiscoveryServer).ConnectBack(&discoveryConnectBackServer{stream})
+}
+
+type Discovery_ConnectBackServer interface {
+	SendAndClose(*Close) error
+	Recv() (*ConnectBackMessage, error)
+	grpc.ServerStream
+}
+
+type discoveryConnectBackServer struct {
+	grpc.ServerStream
+}
+
+func (x *discoveryConnectBackServer) SendAndClose(m *Close) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *discoveryConnectBackServer) Recv() (*ConnectBackMessage, error) {
+	m := new(ConnectBackMessage)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -259,10 +294,6 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Discovery_GetInfo_Handler,
 		},
 		{
-			MethodName: "Join",
-			Handler:    _Discovery_Join_Handler,
-		},
-		{
 			MethodName: "Ping",
 			Handler:    _Discovery_Ping_Handler,
 		},
@@ -273,8 +304,13 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Sync",
-			Handler:       _Discovery_Sync_Handler,
+			StreamName:    "Connect",
+			Handler:       _Discovery_Connect_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "ConnectBack",
+			Handler:       _Discovery_ConnectBack_Handler,
 			ClientStreams: true,
 		},
 	},

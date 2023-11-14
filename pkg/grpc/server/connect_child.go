@@ -1,6 +1,7 @@
 package grpc_server
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -23,12 +24,17 @@ func (a *agent) ConnectToChild(c *child) error {
 			proto: proto.NewDiscoveryClient(conn),
 			err:   make(chan error, 1),
 		}
+
+		err = grpc_ConnectBack(context.Background(), &cc.stream, a.id, a.addr)
+		if err != nil {
+			return fmt.Errorf("error in sync : %s", err.Error())
+		}
+
 		// run health check conenction for this child
 		go connHealthCheck(&cc.stream, time.Second*2)
 	} else {
 		return fmt.Errorf("child you want to check not exist")
 	}
 
-	fmt.Printf("Connect back to - ID=%s\n", c.Id)
 	return <-c.childErr()
 }

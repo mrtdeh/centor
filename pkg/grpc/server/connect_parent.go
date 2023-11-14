@@ -45,7 +45,7 @@ func (a *agent) ConnectToParent() error {
 	}
 
 	// create sync stream rpc to parent server
-	err = grpc_SyncToParent(context.Background(), &a.parent.stream, a.id, a.addr)
+	err = grpc_Connect(context.Background(), &a.parent.stream, a.id, a.addr)
 	if err != nil {
 		return fmt.Errorf("error in sync : %s", err.Error())
 	}
@@ -55,6 +55,5 @@ func (a *agent) ConnectToParent() error {
 
 	// @@@ we can add Sync function to connect bi-directional to server
 
-	fmt.Printf("Connect to server - ID=%s\n", si.Id)
 	return <-a.parentErr()
 }

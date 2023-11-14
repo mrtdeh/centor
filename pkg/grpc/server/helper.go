@@ -93,22 +93,36 @@ func grpc_Dial(addr string) (*grpc.ClientConn, error) {
 	return conn, nil
 }
 
-func grpc_SyncToParent(ctx context.Context, parentStream *stream, agentId, agentAddr string) error {
-	str, err := parentStream.proto.Sync(ctx)
+func grpc_Connect(ctx context.Context, s *stream, agentId, agentAddr string) error {
+	str, err := s.proto.Connect(ctx)
 	if err != nil {
-		return fmt.Errorf("error in create sync stream : %s", err.Error())
+		return fmt.Errorf("error in create connect stream : %s", err.Error())
 	}
-	// send sync message to parent server
-	err = str.Send(&proto.SyncMessage{
-		Data: &proto.SyncMessage_JoinMsg{
-			JoinMsg: &proto.JoinMessage{
-				Id:   agentId,
-				Addr: agentAddr,
-			},
-		},
+
+	// send connect message to parent server
+	err = str.Send(&proto.ConnectMessage{
+		Id:   agentId,
+		Addr: agentAddr,
 	})
 	if err != nil {
-		return fmt.Errorf("error in send sync message : %s", err.Error())
+		return fmt.Errorf("error in send connect message : %s", err.Error())
+	}
+
+	return nil
+}
+
+func grpc_ConnectBack(ctx context.Context, s *stream, agentId, agentAddr string) error {
+	str, err := s.proto.ConnectBack(ctx)
+	if err != nil {
+		return fmt.Errorf("error in create connect back stream : %s", err.Error())
+	}
+
+	// send connect back message to parent server
+	err = str.Send(&proto.ConnectBackMessage{
+		Id: agentId,
+	})
+	if err != nil {
+		return fmt.Errorf("error in send connect back message : %s", err.Error())
 	}
 
 	return nil

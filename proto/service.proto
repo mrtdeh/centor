@@ -17,16 +17,6 @@ message Close {}
 //   JoinMessage join_msg = 1; 
 //  }
 // }
-message JoinMessage {
-  string id = 1;
-  string addr = 2;
-  bool is_server = 3;
-}
-
-// message JoinBackMessage {
-//   string id = 1;
-// }
-
 
 
 // message LeaderResponse {
@@ -60,21 +50,24 @@ message CallResponse{
   repeated string tags = 1;
 }
 
-message SyncMessage{
-  oneof data{
-    JoinMessage join_msg = 1; 
-  }
+
+message ConnectMessage {
+  string id = 1;
+  string addr = 2;
+  bool is_server = 3;
+}
+
+message ConnectBackMessage {
+  string id = 1;
 }
 
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
-  rpc Join(JoinMessage) returns (Close);
-  rpc Sync(stream SyncMessage) returns (Close);   // alternative for join 
+
+  rpc Connect(stream ConnectMessage) returns (Close); // child -> parent
+  rpc ConnectBack(stream ConnectBackMessage) returns (Close); // parent -> child
   rpc Ping(PingRequest) returns (PongResponse);
   rpc Call(CallRequest) returns (CallResponse);
-  // rpc JoinBack(JoinBackMessage) returns (Close);
-  // rpc Follow(stream FollowerRequest) returns (stream LeaderResponse);
-  // rpc CreateProxy(CreateProxyRequest) returns (Close);
 }
 
 // ================== Client Proxy Service ================
