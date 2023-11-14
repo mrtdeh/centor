@@ -4,8 +4,10 @@ import (
 	"log"
 	"strings"
 
+	api_server "github.com/mrtdeh/centor/pkg/api"
 	"github.com/mrtdeh/centor/pkg/config"
-	server "github.com/mrtdeh/centor/pkg/grpc/server"
+	grpc_server "github.com/mrtdeh/centor/pkg/grpc/server"
+	"github.com/mrtdeh/centor/routers"
 )
 
 func main() {
@@ -18,7 +20,20 @@ func main() {
 		serversAddrs = strings.Split(strings.TrimSpace(sd), ",")
 	}
 
-	err := server.Start(server.Config{
+	if config.WithAPI {
+		httpServer := api_server.HttpServer{
+			Host:   "localhost",
+			Port:   9090,
+			Debug:  true,
+			Router: routers.InitRouter(),
+		}
+
+		go func() {
+			log.Fatal(httpServer.Serve())
+		}()
+	}
+
+	err := grpc_server.Start(grpc_server.Config{
 		Name:     cnf.Name,
 		Host:     cnf.Host,
 		Port:     cnf.Port,

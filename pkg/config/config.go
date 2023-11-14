@@ -42,6 +42,7 @@ type Config struct {
 
 var (
 	Verbose bool
+	WithAPI bool
 )
 
 func LoadConfiguration() *Config {
@@ -59,6 +60,8 @@ func LoadConfiguration() *Config {
 	}
 
 	flag.BoolVar(&Verbose, "v", false, "")
+	flag.BoolVar(&WithAPI, "api", false, "")
+
 	flag.StringVar(&cnf.Name, "n", cnf.Name, "")
 	flag.StringVar(&cnf.Host, "h", cnf.Host, "")
 	flag.UintVar(&cnf.Port, "p", cnf.Port, "")

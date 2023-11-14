@@ -14,12 +14,14 @@ type Config struct {
 	IsLeader bool
 }
 
+var a *agent
+
 func Start(cnf Config) error {
 	if cnf.Host == "" {
 		cnf.Host = "127.0.0.1"
 	}
 
-	a := &agent{
+	a = &agent{
 		id:       cnf.Name,
 		addr:     fmt.Sprintf("%s:%d", cnf.Host, cnf.Port),
 		childs:   make(map[string]*child),
