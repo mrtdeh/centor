@@ -43,6 +43,13 @@ func Start(cnf Config) error {
 				time.Sleep(time.Second * 1)
 			}
 		}()
+	} else {
+		nodesInfo[a.id] = NodeInfo{
+			Id:       a.id,
+			Address:  a.addr,
+			IsServer: true,
+			IsLeader: true,
+		}
 	}
 
 	return a.Listen()

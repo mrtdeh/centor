@@ -18,6 +18,7 @@ type NodeInfo struct {
 	Address  string `json:"address"`
 	Port     string `json:"port"`
 	IsServer bool   `json:"is_server"`
+	IsLeader bool   `json:"is_leader"`
 	ParentId string `json:"parent_id"`
 }
 
