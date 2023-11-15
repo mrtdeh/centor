@@ -56,10 +56,27 @@ message ConnectMessage {
   string addr = 2;
   bool is_server = 3;
 }
-
 message ConnectBackMessage {
   string id = 1;
 }
+
+
+message ChangeRequest{
+  oneof change {
+    NodesChange nodes_change = 1;
+  }
+}
+message NoticeRequest{
+  oneof notice {
+    NodesChange nodes_change = 1;
+  }
+}
+message NodesChange {
+  string id = 1;
+  int32 action = 2;
+  string data = 3;
+}
+
 
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
@@ -68,6 +85,14 @@ service Discovery {
   rpc ConnectBack(stream ConnectBackMessage) returns (Close); // parent -> child
   rpc Ping(PingRequest) returns (PongResponse);
   rpc Call(CallRequest) returns (CallResponse);
+
+  // get node's change from servers to leader
+  // changes include:
+  // - added new node 
+  // - leaved a node
+  rpc Change(ChangeRequest) returns (Close);
+  // get latest node's change from leader to servers and childs 
+  rpc Notice(NoticeRequest) returns (Close);
 }
 
 // ================== Client Proxy Service ================

@@ -18,6 +18,7 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 
 	r.GET("/call", api_v1.Call)
+	r.GET("/nodes", api_v1.GetNodes)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

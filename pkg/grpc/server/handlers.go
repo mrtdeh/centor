@@ -17,3 +17,7 @@ func Call() (string, error) {
 	}
 	return strings.Join(res.Tags, " ,"), nil
 }
+
+func GetClusterNodes() map[string]NodeInfo {
+	return nodesInfo
+}

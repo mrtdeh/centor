@@ -93,16 +93,17 @@ func grpc_Dial(addr string) (*grpc.ClientConn, error) {
 	return conn, nil
 }
 
-func grpc_Connect(ctx context.Context, s *stream, agentId, agentAddr string) error {
-	str, err := s.proto.Connect(ctx)
+func grpc_Connect(ctx context.Context, a *agent) error {
+	str, err := a.parent.proto.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("error in create connect stream : %s", err.Error())
 	}
 
 	// send connect message to parent server
 	err = str.Send(&proto.ConnectMessage{
-		Id:   agentId,
-		Addr: agentAddr,
+		Id:       a.id,
+		Addr:     a.addr,
+		IsServer: a.isServer,
 	})
 	if err != nil {
 		return fmt.Errorf("error in send connect message : %s", err.Error())

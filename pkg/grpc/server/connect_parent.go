@@ -45,7 +45,7 @@ func (a *agent) ConnectToParent() error {
 	}
 
 	// create sync stream rpc to parent server
-	err = grpc_Connect(context.Background(), &a.parent.stream, a.id, a.addr)
+	err = grpc_Connect(context.Background(), a)
 	if err != nil {
 		return fmt.Errorf("error in sync : %s", err.Error())
 	}

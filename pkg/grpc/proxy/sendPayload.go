@@ -13,14 +13,10 @@ import (
 func (sp *server) SendPayload(ctx context.Context, req *proto.RequestPayload) (*proto.ResponsePayload, error) {
 	// log.Println("new payload : ", string(req.Conn))
 	sp.msgIn <- req.Conn
-	log.Println("debug 1")
 
 	select {
 
 	case res := <-sp.msgOut:
-		log.Println("debug 2")
-		// fmt.Println("wait for responses...")
-
 		return &proto.ResponsePayload{
 			Body: res,
 		}, nil
