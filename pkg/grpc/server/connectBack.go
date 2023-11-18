@@ -21,6 +21,6 @@ func (a *agent) ConnectBack(stream proto.Discovery_ConnectBackServer) error {
 			fmt.Printf("Disconnect parent - ID=%s\n", pid)
 		}()
 
-		fmt.Printf("Conenct to parent - ID=%s\n", pid)
+		fmt.Printf("Conenct Back from parent - ID=%s\n", pid)
 	}
 }

@@ -36,6 +36,7 @@ func main() {
 	err := grpc_server.Start(grpc_server.Config{
 		Name:     cnf.Name,
 		Host:     cnf.Host,
+		AltHost:  cnf.AltHost,
 		Port:     cnf.Port,
 		IsServer: cnf.IsServer,
 		IsLeader: cnf.IsLeader,

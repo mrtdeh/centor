@@ -68,6 +68,7 @@ func (a *agent) applyChange(id string, ni NodeInfo, action int32) error {
 		child.proto.Notice(context.Background(), &proto.NoticeRequest{
 			Notice: &proto.NoticeRequest_NodesChange{
 				NodesChange: &proto.NodesChange{
+					Id:   a.id,
 					Data: string(data),
 				},
 			},

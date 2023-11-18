@@ -112,7 +112,7 @@ func grpc_Connect(ctx context.Context, a *agent) error {
 	return nil
 }
 
-func grpc_ConnectBack(ctx context.Context, s *stream, agentId, agentAddr string) error {
+func grpc_ConnectBack(ctx context.Context, s *stream, agentId string) error {
 	str, err := s.proto.ConnectBack(ctx)
 	if err != nil {
 		return fmt.Errorf("error in create connect back stream : %s", err.Error())

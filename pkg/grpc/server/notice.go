@@ -10,9 +10,12 @@ import (
 
 func (a *agent) Notice(ctx context.Context, req *proto.NoticeRequest) (*proto.Close, error) {
 	c := &proto.Close{}
+	if a.isLeader {
+		return c, fmt.Errorf("this service is leader and can not call notice from here")
+	}
 
 	if nch := req.GetNodesChange(); nch != nil {
-		fmt.Println("New notice - change nodes : ", nch.Id)
+		fmt.Println("New notice - change nodes")
 		var nodes map[string]NodeInfo
 		err := json.Unmarshal([]byte(nch.Data), &nodes)
 		if err != nil {

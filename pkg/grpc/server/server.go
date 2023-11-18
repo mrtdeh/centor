@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Name     string
 	Host     string
+	AltHost  string
 	Port     uint
 	Replica  []string
 	IsServer bool
@@ -21,9 +22,14 @@ func Start(cnf Config) error {
 		cnf.Host = "127.0.0.1"
 	}
 
+	var host string = cnf.Host
+	if cnf.AltHost != "" {
+		host = cnf.AltHost
+	}
+
 	a = &agent{
 		id:       cnf.Name,
-		addr:     fmt.Sprintf("%s:%d", cnf.Host, cnf.Port),
+		addr:     fmt.Sprintf("%s:%d", host, cnf.Port),
 		childs:   make(map[string]*child),
 		isServer: cnf.IsServer,
 		isLeader: cnf.IsLeader,

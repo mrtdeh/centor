@@ -15,7 +15,7 @@ protoc:
 
 
 build-compose:
-	docker-compose up -d --build
+	docker-compose up -d --build --remove-orphans
 
 clean:
 	rm -f ./bin/*

@@ -24,8 +24,7 @@ func (a *agent) ConnectToChild(c *child) error {
 			proto: proto.NewDiscoveryClient(conn),
 			err:   make(chan error, 1),
 		}
-
-		err = grpc_ConnectBack(context.Background(), &cc.stream, a.id, a.addr)
+		err = grpc_ConnectBack(context.Background(), &cc.stream, a.id)
 		if err != nil {
 			return fmt.Errorf("error in connect back : %s", err.Error())
 		}

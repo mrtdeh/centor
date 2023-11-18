@@ -35,6 +35,7 @@ type Service struct {
 type Config struct {
 	Name        string
 	Host        string
+	AltHost     string
 	Port        uint
 	IsServer    bool
 	IsLeader    bool
@@ -83,13 +84,16 @@ func LoadConfiguration() *Config {
 	if e := os.Getenv("LEADER"); e != "" {
 		cnf.IsLeader = true
 	}
-	fmt.Printf("args : %+v\n", cnf)
+	if e := os.Getenv("ALTERNATIVE_HOST"); e != "" {
+		cnf.AltHost = e
+	}
 
 	flag.BoolVar(&Verbose, "v", false, "")
 	flag.BoolVar(&WithAPI, "api", false, "")
 
 	flag.StringVar(&cnf.Name, "n", cnf.Name, "")
 	flag.StringVar(&cnf.Host, "h", cnf.Host, "")
+	flag.StringVar(&cnf.AltHost, "ah", cnf.AltHost, "")
 	flag.UintVar(&cnf.Port, "p", cnf.Port, "")
 	flag.StringVar(&cnf.ServersAddr, "join", cnf.ServersAddr, "")
 	flag.BoolVar(&cnf.IsServer, "server", cnf.IsServer, "")
@@ -102,6 +106,7 @@ func LoadConfiguration() *Config {
 		fmt.Printf("%s\n", cb)
 	}
 
+	fmt.Printf("args : %+v\n", cnf)
 	return cnf
 }
 
