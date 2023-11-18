@@ -5,8 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
@@ -58,6 +60,30 @@ func LoadConfiguration() *Config {
 	if err != nil {
 		log.Fatalf("Failed to compile configuration: %s", err)
 	}
+
+	if e := os.Getenv("PORT"); e != "" {
+		p, _ := strconv.Atoi(e)
+		cnf.Port = uint(p)
+	}
+	if e := os.Getenv("NAME"); e != "" {
+		cnf.Name = e
+	}
+	if e := os.Getenv("HOST"); e != "" {
+		cnf.Host = e
+	}
+	if e := os.Getenv("JOIN"); e != "" {
+		cnf.ServersAddr = e
+	}
+	if e := os.Getenv("JOIN"); e != "" {
+		cnf.ServersAddr = e
+	}
+	if e := os.Getenv("SERVER"); e != "" {
+		cnf.IsServer = true
+	}
+	if e := os.Getenv("LEADER"); e != "" {
+		cnf.IsLeader = true
+	}
+	fmt.Printf("args : %+v\n", cnf)
 
 	flag.BoolVar(&Verbose, "v", false, "")
 	flag.BoolVar(&WithAPI, "api", false, "")

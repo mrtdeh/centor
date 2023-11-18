@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  centor-server-1:
+    build:
+      context: .
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - SERVER=true
+      - LEADER=true
+      - NAME=ali
+    ports:
+      - "3000:3000"
+
+  centor-server-2:
+    build:
+      context: .
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - SERVER=true
+      - JOIN=centor-server-1:3000,centor-server-2:3002
+      - NAME=reza
+    ports:
+      - "3002:3000"
+
+
+  # centor-client-1:
+  #   build:
+  #     context: .
+  #   environment:
+  #     - PORT=3000
+  #     - JOIN=centor-server-1:3000,centor-server-2:3002
+  #     - NAME=client-1
+  #   ports:
+  #     - "4001:3000"
+
+  # centor-client-2:
+  #   build:
+  #     context: .
+  #   environment:
+  #     - PORT=3000
+  #     - JOIN=centor-server-1:3000,centor-server-2:3002
+  #     - NAME=client-2
+  #   ports:
+  #     - "4002:3000"
+
+  # centor-client-3:
+  #   build:
+  #     context: .
+  #   environment:
+  #     - PORT=3000
+  #     - JOIN=centor-server-1:3000,centor-server-2:3002
+  #     - NAME=client-3
+  #   ports:
+  #     - "4003:3000"

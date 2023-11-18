@@ -12,7 +12,7 @@ func (a *agent) Notice(ctx context.Context, req *proto.NoticeRequest) (*proto.Cl
 	c := &proto.Close{}
 
 	if nch := req.GetNodesChange(); nch != nil {
-		fmt.Println("New notice - change nodes")
+		fmt.Println("New notice - change nodes : ", nch.Id)
 		var nodes map[string]NodeInfo
 		err := json.Unmarshal([]byte(nch.Data), &nodes)
 		if err != nil {

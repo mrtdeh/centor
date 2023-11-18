@@ -14,7 +14,8 @@ protoc:
 	protoc --go-grpc_out=require_unimplemented_servers=false:./proto/ ./proto/*.proto --go_out=./proto
 
 
-
+build-compose:
+	docker-compose up -d --build
 
 clean:
 	rm -f ./bin/*
