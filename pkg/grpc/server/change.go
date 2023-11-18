@@ -34,6 +34,8 @@ func (a *agent) Change(ctx context.Context, req *proto.ChangeRequest) (*proto.Cl
 	}
 
 	if nch := req.GetNodesChange(); nch != nil {
+		fmt.Println("New change - change nodes")
+
 		var ni NodeInfo
 		err := json.Unmarshal([]byte(nch.Data), &ni)
 		if err != nil {

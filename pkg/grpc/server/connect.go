@@ -57,6 +57,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 
 		// wait for error
 		case err := <-errCh:
+			log.Println("conenct error : ", err.Error())
 			if joined {
 				a.weight--
 				c.stream.err <- fmt.Errorf("client disconnected")
@@ -94,7 +95,7 @@ func (a *agent) syncChangeToLeader(ni NodeInfo, action int32) error {
 				Change: &proto.ChangeRequest_NodesChange{
 					NodesChange: &proto.NodesChange{
 						Id:     ni.Id,
-						Action: ChangeActionAdd,
+						Action: action,
 						Data:   string(data),
 					},
 				},
