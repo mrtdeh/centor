@@ -15,7 +15,11 @@ protoc:
 
 
 build-compose:
-	docker-compose up -d --build --remove-orphans
+	docker build . --tag mrtdeh/centor
+	docker-compose up --force-recreate --build -d
+	docker image prune -f
+
+#	docker-compose up -d --build --remove-orphans
 
 clean:
 	rm -f ./bin/*

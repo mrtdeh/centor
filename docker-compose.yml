@@ -2,8 +2,7 @@ version: '3'
 
 services:
   centor-server-1:
-    build:
-      context: .
+    image: mrtdeh/centor
     command: --api
     networks:
       - cluster
@@ -17,8 +16,7 @@ services:
       - "9090:9090"
 
   centor-server-2:
-    build:
-      context: .
+    image: mrtdeh/centor
     networks:
       - cluster
     environment:
@@ -29,11 +27,10 @@ services:
       - ALTERNATIVE_HOST=centor-server-2
       - NAME=reza
    
-  
+
 
   centor-client-1:
-    build:
-      context: .
+    image: mrtdeh/centor
     networks:
       - cluster
     environment:
@@ -46,8 +43,7 @@ services:
       - centor-server-2   
 
   centor-client-2:
-    build:
-      context: .
+    image: mrtdeh/centor
     networks:
       - cluster
     environment:
@@ -61,8 +57,7 @@ services:
  
 
   centor-client-3:
-    build:
-      context: .
+    image: mrtdeh/centor
     networks:
       - cluster
     environment:
