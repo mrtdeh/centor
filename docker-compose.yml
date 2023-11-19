@@ -29,7 +29,7 @@ services:
       - ALTERNATIVE_HOST=centor-server-2
       - NAME=reza
    
-
+  
 
   centor-client-1:
     build:
