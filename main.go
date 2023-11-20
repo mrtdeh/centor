@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
+	"github.com/common-nighthawk/go-figure"
 	api_server "github.com/mrtdeh/centor/pkg/api"
 	"github.com/mrtdeh/centor/pkg/config"
 	grpc_server "github.com/mrtdeh/centor/pkg/grpc/server"
@@ -12,6 +14,10 @@ import (
 
 func main() {
 
+	// print centor in cli
+	printLogo()
+
+	// load configurations
 	cnf := config.LoadConfiguration()
 
 	var serversAddrs []string
@@ -20,6 +26,7 @@ func main() {
 		serversAddrs = strings.Split(strings.TrimSpace(sd), ",")
 	}
 
+	// initilize api server
 	if config.WithAPI {
 		httpServer := api_server.HttpServer{
 			Host:   "localhost",
@@ -33,6 +40,7 @@ func main() {
 		}()
 	}
 
+	// initilize gRPC server
 	err := grpc_server.Start(grpc_server.Config{
 		Name:     cnf.Name,
 		Host:     cnf.Host,
@@ -46,4 +54,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+}
+
+func printLogo() {
+	myFigure := figure.NewFigure("CENTOR", "", true)
+	myFigure.Print()
+	fmt.Println()
 }

@@ -7,10 +7,10 @@ services:
     networks:
       - cluster
     environment:
-      - HOST=0.0.0.0
       - PORT=3000
       - SERVER=true
       - LEADER=true
+      - ALTERNATIVE_HOST=centor-server-1
       - NAME=ali
     ports:
       - "9090:9090"
@@ -20,7 +20,6 @@ services:
     networks:
       - cluster
     environment:
-      - HOST=0.0.0.0
       - PORT=3002
       - SERVER=true
       - JOIN=centor-server-1:3000

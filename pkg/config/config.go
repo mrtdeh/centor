@@ -106,7 +106,7 @@ func LoadConfiguration() *Config {
 		fmt.Printf("%s\n", cb)
 	}
 
-	fmt.Printf("args : %+v\n", cnf)
+	// fmt.Printf("args : %+v\n", cnf)
 	return cnf
 }
 

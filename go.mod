@@ -3,6 +3,7 @@ module github.com/mrtdeh/centor
 go 1.20
 
 require (
+	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/gin-gonic/gin v1.9.1
 	github.com/hashicorp/hcl/v2 v2.18.1
 	github.com/swaggo/files v1.0.1
