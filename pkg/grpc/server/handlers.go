@@ -18,6 +18,7 @@ func Call() (string, error) {
 	return strings.Join(res.Tags, " ,"), nil
 }
 
+// GetClusterNodes returns a map of all the nodes in the cluster
 func GetClusterNodes() map[string]NodeInfo {
 	return nodesInfo
 }
