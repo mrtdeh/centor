@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  centor-server-1:
+  centor-server-1-1:
     image: mrtdeh/centor
     command: --api
     networks:
@@ -12,11 +12,11 @@ services:
       - PORT=3000
       - SERVER=true
       - LEADER=true
-      - ALTERNATIVE_HOST=centor-server-1
+      - ALTERNATIVE_HOST=centor-server-1-1
     ports:
       - "9090:9090"
 
-  centor-server-2:
+  centor-server-1-2:
     image: mrtdeh/centor
     networks:
       - cluster
@@ -25,56 +25,57 @@ services:
       - DC=dc1
       - PORT=3002
       - SERVER=true
-      - JOIN=centor-server-1:3000
-      - ALTERNATIVE_HOST=centor-server-2
+      - JOIN=centor-server-1-1:3000
+      - ALTERNATIVE_HOST=centor-server-1-2
    
 
 
-  centor-client-1:
+  centor-client-1-1:
     image: mrtdeh/centor
     networks:
       - cluster
     environment:
-      - NAME=client-1
+      - NAME=client-1-1
       - DC=dc1
       - PORT=4001
-      - JOIN=centor-server-1:3000,centor-server-2:3002
-      - ALTERNATIVE_HOST=centor-client-1
+      - JOIN=centor-server-1-1:3000,centor-server-1-2:3002
+      - ALTERNATIVE_HOST=centor-client-1-1
     depends_on:
-      - centor-server-1   
-      - centor-server-2   
+      - centor-server-1-1   
+      - centor-server-1-2   
 
-  centor-client-2:
+  centor-client-1-2:
     image: mrtdeh/centor
     networks:
       - cluster
     environment:
-      - NAME=client-2
+      - NAME=client-1-2
       - DC=dc1
       - PORT=4002
-      - JOIN=centor-server-1:3000,centor-server-2:3002
-      - ALTERNATIVE_HOST=centor-client-2
+      - JOIN=centor-server-1-1:3000,centor-server-1-2:3002
+      - ALTERNATIVE_HOST=centor-client-1-2
     depends_on:
-      - centor-server-1   
-      - centor-server-2  
+      - centor-server-1-1   
+      - centor-server-1-2  
  
 
-  centor-client-3:
+  centor-client-1-3:
     image: mrtdeh/centor
     networks:
       - cluster
     environment:
-      - NAME=client-3
+      - NAME=client-1-3
       - DC=dc1
       - PORT=4003
-      - JOIN=centor-server-1:3000,centor-server-2:3002
-      - ALTERNATIVE_HOST=centor-client-3
+      - JOIN=centor-server-1-1:3000,centor-server-1-2:3002
+      - ALTERNATIVE_HOST=centor-client-1-3
     depends_on:
-      - centor-server-1   
-      - centor-server-2  
+      - centor-server-1-1   
+      - centor-server-1-2  
    
 
 networks:
   cluster:
     # Use a custom driver
     driver: bridge
+    name: centor_network

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/mrtdeh/centor/proto"
 )
@@ -115,23 +116,30 @@ func (a *agent) syncChangeToLeader(ni NodeInfo, action int32) error {
 			return fmt.Errorf("error in applyChange : %s", err.Error())
 		}
 	} else {
-		if a.parent != nil {
-			data, err := json.Marshal(ni)
-			if err != nil {
-				return err
-			}
-			_, err = a.parent.proto.Change(context.Background(), &proto.ChangeRequest{
-				Change: &proto.ChangeRequest_NodesChange{
-					NodesChange: &proto.NodesChange{
-						Id:     ni.Id,
-						Action: action,
-						Data:   string(data),
+		for {
+			if a.parent != nil {
+				data, err := json.Marshal(ni)
+				if err != nil {
+					return err
+				}
+				_, err = a.parent.proto.Change(context.Background(), &proto.ChangeRequest{
+					Change: &proto.ChangeRequest_NodesChange{
+						NodesChange: &proto.NodesChange{
+							Id:     ni.Id,
+							Action: action,
+							Data:   string(data),
+						},
 					},
-				},
-			})
-			if err != nil {
-				return err
+				})
+				if err != nil {
+					log.Printf("error in syncChangeToLeader : %s", err.Error())
+					continue
+				}
+				// break out of for
+				break
 			}
+			fmt.Println("retry to sync")
+			time.Sleep(time.Millisecond * 100)
 		}
 	}
 
