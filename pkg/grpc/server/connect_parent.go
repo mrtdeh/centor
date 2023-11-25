@@ -8,10 +8,20 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (a *agent) ConnectToParent() error {
+type connectConfig struct {
+	ConnectToPrimary bool
+}
+
+func (a *agent) ConnectToParent(cc *connectConfig) error {
 	if len(a.servers) == 0 {
 		return nil
 	}
+
+	var parentIsPrimary bool
+	if cc != nil {
+		parentIsPrimary = cc.ConnectToPrimary
+	}
+	fmt.Println("parentIsPrimary : ", parentIsPrimary)
 
 	// master election for servers / best election for clients
 	var si *ServerInfo
@@ -36,8 +46,12 @@ func (a *agent) ConnectToParent() error {
 
 	// create parent object
 	a.parent = &parent{
-		id: si.Id,
-		stream: stream{
+		agent: agent{ // parent agent
+			id:        si.Id,
+			isLeader:  si.IsLeader,
+			isPrimary: parentIsPrimary,
+		},
+		stream: stream{ // parent stream
 			conn:  conn,
 			proto: proto.NewDiscoveryClient(conn),
 			err:   make(chan error, 1),

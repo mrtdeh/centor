@@ -10,14 +10,14 @@ import (
 
 func (a *agent) ConnectToChild(c *child) error {
 	// dial to child listener
-	conn, err := grpc_Dial(c.Addr)
+	conn, err := grpc_Dial(c.addr)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
 	// create child object
-	if cc, ok := a.childs[c.Id]; ok {
+	if cc, ok := a.childs[c.id]; ok {
 		// store client connection and proto info
 		cc.stream = stream{
 			conn:  conn,
@@ -30,9 +30,9 @@ func (a *agent) ConnectToChild(c *child) error {
 		}
 		// send added node info to leader
 		err := a.syncChangeToLeader(NodeInfo{
-			Id:       c.Id,
-			Address:  c.Addr,
-			IsServer: c.IsServer,
+			Id:       c.id,
+			Address:  c.addr,
+			IsServer: c.isServer,
 			ParentId: a.id,
 		}, ChangeActionAdd)
 		if err != nil {

@@ -26,6 +26,12 @@ func main() {
 		serversAddrs = strings.Split(strings.TrimSpace(sd), ",")
 	}
 
+	var primariesAddrs []string
+	pd := cnf.PrimaryServersAddr
+	if sd != "" {
+		primariesAddrs = strings.Split(strings.TrimSpace(pd), ",")
+	}
+
 	// initilize api server
 	if config.WithAPI {
 		httpServer := api_server.HttpServer{
@@ -42,13 +48,15 @@ func main() {
 
 	// initilize gRPC server
 	err := grpc_server.Start(grpc_server.Config{
-		Name:     cnf.Name,
-		Host:     cnf.Host,
-		AltHost:  cnf.AltHost,
-		Port:     cnf.Port,
-		IsServer: cnf.IsServer,
-		IsLeader: cnf.IsLeader,
-		Replica:  serversAddrs,
+		Name:       cnf.Name,
+		DataCenter: cnf.DataCenter,
+		Host:       cnf.Host,
+		AltHost:    cnf.AltHost,
+		Port:       cnf.Port,
+		IsServer:   cnf.IsServer,
+		IsLeader:   cnf.IsLeader,
+		Replica:    serversAddrs,
+		Primaries:  primariesAddrs,
 	})
 	if err != nil {
 		log.Fatal(err)

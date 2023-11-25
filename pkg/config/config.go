@@ -15,6 +15,7 @@ import (
 
 type config struct {
 	Name               *string `hcl:"name"`
+	DataCenter         *string `hcl:"dc"`
 	Host               *string `hcl:"host" json:"host,omitempty"`
 	Port               *uint   `hcl:"port"`
 	IsServer           *bool   `hcl:"is_server"`
@@ -35,6 +36,7 @@ type Service struct {
 }
 type Config struct {
 	Name               string    // id of the agent
+	DataCenter         string    // datacenter of the agent
 	Host               string    // hostname of the agent
 	AltHost            string    // hostname of the agent (alternative) (optional)
 	Port               uint      // port of the agent
@@ -74,6 +76,9 @@ func LoadConfiguration() *Config {
 	if e := os.Getenv("NAME"); e != "" {
 		cnf.Name = e
 	}
+	if e := os.Getenv("DC"); e != "" {
+		cnf.DataCenter = e
+	}
 	if e := os.Getenv("HOST"); e != "" {
 		cnf.Host = e
 	}
@@ -97,6 +102,7 @@ func LoadConfiguration() *Config {
 	flag.BoolVar(&Verbose, "v", false, "")
 	flag.BoolVar(&WithAPI, "api", false, "")
 	flag.StringVar(&cnf.Name, "n", cnf.Name, "")
+	flag.StringVar(&cnf.DataCenter, "dc", cnf.DataCenter, "")
 	flag.StringVar(&cnf.Host, "h", cnf.Host, "")
 	flag.StringVar(&cnf.AltHost, "ah", cnf.AltHost, "")
 	flag.UintVar(&cnf.Port, "p", cnf.Port, "")
@@ -120,11 +126,13 @@ func compile(configs []config) (*Config, error) {
 	for _, c := range configs {
 
 		cnf.Name = check(c.Name, cnf.Name).(string)
+		cnf.DataCenter = check(c.DataCenter, cnf.DataCenter).(string)
 		cnf.Host = check(c.Host, cnf.Host).(string)
 		cnf.Port = check(c.Port, cnf.Port).(uint)
 		cnf.IsServer = check(c.IsServer, cnf.IsServer).(bool)
 		cnf.IsLeader = check(c.IsLeader, cnf.IsLeader).(bool)
 		cnf.ServersAddr = check(c.ServersAddr, cnf.ServersAddr).(string)
+		cnf.PrimaryServersAddr = check(c.PrimaryServersAddr, cnf.PrimaryServersAddr).(string)
 
 		if c.Service != nil {
 			cnf.Services = append(cnf.Services, Service(*c.Service))

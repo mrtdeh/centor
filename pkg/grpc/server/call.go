@@ -24,12 +24,12 @@ func (a *agent) Call(ctx context.Context, req *proto.CallRequest) (*proto.CallRe
 
 	if a.childs != nil {
 		for _, c := range a.childs {
-			if c.Id != req.AgentId {
+			if c.id != req.AgentId {
 				res, err := c.proto.Call(context.Background(), &proto.CallRequest{
 					AgentId: a.id,
 				})
 				if err != nil {
-					log.Fatalf("error in call child %s : %s", c.Id, err.Error())
+					log.Fatalf("error in call child %s : %s", c.id, err.Error())
 				}
 				tags = append(tags, res.Tags...)
 			}

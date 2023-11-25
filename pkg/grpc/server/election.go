@@ -11,8 +11,9 @@ import (
 )
 
 type ServerInfo struct {
-	Id   string
-	Addr string
+	Id       string
+	Addr     string
+	IsLeader bool
 }
 
 func bestElect(addrs []string) (*ServerInfo, error) {
@@ -37,7 +38,7 @@ func bestElect(addrs []string) (*ServerInfo, error) {
 		if res.Weight < int32(weight) {
 			weight = int(res.Weight)
 			index = i
-			si = &ServerInfo{res.Id, a}
+			si = &ServerInfo{res.Id, a, res.IsLeader}
 			conn.Close()
 		}
 
@@ -64,9 +65,9 @@ func leaderElect(addrs []string) (*ServerInfo, error) {
 			return nil, fmt.Errorf("error in getInfo : %s", err.Error())
 		}
 
-		si = &ServerInfo{res.Id, a}
+		si = &ServerInfo{res.Id, a, res.IsLeader}
 
-		if res.IsMaster {
+		if res.IsLeader {
 			conn.Close()
 			return si, nil
 		}

@@ -9,21 +9,6 @@ option go_package = ".;proto";
 message Close {}
 
 
-
-
-// @@@ - follower connection request for join to master
-// message FollowerRequest {
-//  oneof data{
-//   JoinMessage join_msg = 1; 
-//  }
-// }
-
-
-// message LeaderResponse {
-//   oneof data{
-//    ProxyRequest proxy_request = 1;
-//   }
-// }
 message ProxyRequest {
   string proxy_port = 1;
 }
@@ -31,7 +16,7 @@ message ProxyRequest {
 message EmptyRequest{}
 message InfoResponse{
   string id = 1;
-  bool is_master = 2;
+  bool is_leader = 2;
   int32 weight = 3;
 }
 
@@ -55,6 +40,7 @@ message ConnectMessage {
   string id = 1;
   string addr = 2;
   bool is_server = 3;
+  string DataCenter = 4;
 }
 message ConnectBackMessage {
   string id = 1;

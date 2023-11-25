@@ -9,7 +9,7 @@ import (
 func (s *agent) GetInfo(context.Context, *proto.EmptyRequest) (*proto.InfoResponse, error) {
 	return &proto.InfoResponse{
 		Id:       s.id,
-		IsMaster: s.isLeader,
+		IsLeader: s.isLeader,
 		Weight:   int32(s.weight),
 	}, nil
 }

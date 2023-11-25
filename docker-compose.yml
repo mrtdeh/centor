@@ -7,11 +7,12 @@ services:
     networks:
       - cluster
     environment:
+      - NAME=ali
+      - DC=dc1
       - PORT=3000
       - SERVER=true
       - LEADER=true
       - ALTERNATIVE_HOST=centor-server-1
-      - NAME=ali
     ports:
       - "9090:9090"
 
@@ -20,11 +21,12 @@ services:
     networks:
       - cluster
     environment:
+      - NAME=reza
+      - DC=dc1
       - PORT=3002
       - SERVER=true
       - JOIN=centor-server-1:3000
       - ALTERNATIVE_HOST=centor-server-2
-      - NAME=reza
    
 
 
@@ -33,10 +35,11 @@ services:
     networks:
       - cluster
     environment:
+      - NAME=client-1
+      - DC=dc1
       - PORT=4001
       - JOIN=centor-server-1:3000,centor-server-2:3002
       - ALTERNATIVE_HOST=centor-client-1
-      - NAME=client-1
     depends_on:
       - centor-server-1   
       - centor-server-2   
@@ -46,10 +49,11 @@ services:
     networks:
       - cluster
     environment:
+      - NAME=client-2
+      - DC=dc1
       - PORT=4002
       - JOIN=centor-server-1:3000,centor-server-2:3002
       - ALTERNATIVE_HOST=centor-client-2
-      - NAME=client-2
     depends_on:
       - centor-server-1   
       - centor-server-2  
@@ -60,10 +64,11 @@ services:
     networks:
       - cluster
     environment:
+      - NAME=client-3
+      - DC=dc1
       - PORT=4003
       - JOIN=centor-server-1:3000,centor-server-2:3002
       - ALTERNATIVE_HOST=centor-client-3
-      - NAME=client-3
     depends_on:
       - centor-server-1   
       - centor-server-2  

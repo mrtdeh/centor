@@ -8,6 +8,7 @@ import (
 type agent struct {
 	id        string // id of the agent
 	addr      string // address of this node
+	dc        string // datacenter of this node
 	isServer  bool   // is this node a server or not
 	isLeader  bool   // is this node leader or not
 	isPrimary bool   // is this node primary server or not
@@ -27,15 +28,17 @@ type stream struct {
 }
 
 type parent struct {
-	id        string // id of the parent
-	isLeader  bool   // is this node leader or not
-	isPrimary bool   // is this node primary server or not
+	agent
+	// id        string // id of the parent
+	// isLeader  bool   // is this node leader or not
+	// isPrimary bool   // is this node primary server or not
 	stream
 }
 
 type child struct {
-	Id       string // id of the child
-	Addr     string // address of the child
-	IsServer bool   // is this node a server or not
-	stream          // stream of the child
+	agent
+	// Id       string // id of the child
+	// Addr     string // address of the child
+	// IsServer bool   // is this node a server or not
+	stream // stream of the child
 }

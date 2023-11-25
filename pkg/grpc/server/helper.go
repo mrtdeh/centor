@@ -51,10 +51,10 @@ func (a *agent) unReady() {
 }
 
 func (a *agent) CloseChild(c *child) error {
-	if _, ok := a.childs[c.Id]; !ok {
-		return fmt.Errorf("child %s is not exist", c.Id)
+	if _, ok := a.childs[c.id]; !ok {
+		return fmt.Errorf("child %s is not exist", c.id)
 	}
-	delete(a.childs, c.Id)
+	delete(a.childs, c.id)
 	return nil
 }
 
@@ -101,9 +101,10 @@ func grpc_Connect(ctx context.Context, a *agent) error {
 
 	// send connect message to parent server
 	err = str.Send(&proto.ConnectMessage{
-		Id:       a.id,
-		Addr:     a.addr,
-		IsServer: a.isServer,
+		Id:         a.id,
+		DataCenter: a.dc,
+		Addr:       a.addr,
+		IsServer:   a.isServer,
 	})
 	if err != nil {
 		return fmt.Errorf("error in send connect message : %s", err.Error())

@@ -6,13 +6,15 @@ import (
 )
 
 type Config struct {
-	Name     string   // Name of the server(id)
-	Host     string   // Host of the server
-	AltHost  string   // alternative host of the server (optional)
-	Port     uint     // Port of the server
-	Replica  []string // servers addresses for replication
-	IsServer bool     // is this node a server or not
-	IsLeader bool     // is this node leader or not
+	Name       string   // Name of the server(id)
+	DataCenter string   // Name of the server(id)
+	Host       string   // Host of the server
+	AltHost    string   // alternative host of the server (optional)
+	Port       uint     // Port of the server
+	Replica    []string // servers addresses for replication
+	Primaries  []string // primaries addresses
+	IsServer   bool     // is this node a server or not
+	IsLeader   bool     // is this node leader or not
 }
 
 var a *agent
@@ -31,6 +33,7 @@ func Start(cnf Config) error {
 	// create default agent instance
 	a = &agent{
 		id:       cnf.Name,
+		dc:       cnf.DataCenter,
 		addr:     fmt.Sprintf("%s:%d", host, cnf.Port),
 		childs:   make(map[string]*child),
 		isServer: cnf.IsServer,
@@ -44,7 +47,7 @@ func Start(cnf Config) error {
 		go func() {
 			for {
 				// try connect to parent server
-				err = a.ConnectToParent()
+				err = a.ConnectToParent(nil)
 				if err != nil {
 					fmt.Println(err.Error())
 				}
@@ -61,7 +64,27 @@ func Start(cnf Config) error {
 			IsServer: true,
 			IsLeader: true,
 		}
+
+		if len(cnf.Primaries) > 0 {
+			var err error
+			go func() {
+				for {
+					// try connect to parent server
+					err = a.ConnectToParent(&connectConfig{
+						ConnectToPrimary: true,
+					})
+					if err != nil {
+						fmt.Println(err.Error())
+					}
+					// retry delay time 1 second
+					time.Sleep(time.Second * 1)
+				}
+			}()
+		}
+
 	}
+
+	fmt.Println("DataCenter : ", cnf.DataCenter)
 
 	return a.Listen()
 }

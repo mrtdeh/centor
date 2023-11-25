@@ -15,8 +15,10 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 	var resCh = make(chan *proto.ConnectMessage, 1)
 	var errCh = make(chan error, 1)
 
+	// receive message from in sperated goroutine
 	go func() {
 		for {
+			// receive connect message from child server
 			res, err := stream.Recv()
 			if err != nil {
 				errCh <- err
@@ -26,15 +28,19 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 		}
 	}()
 
+	// receive connect message from channel
 	for {
 		select {
 
 		// wait for receive message
 		case res := <-resCh:
 			c = &child{
-				Id:       res.Id,
-				Addr:     res.Addr,
-				IsServer: res.IsServer,
+				agent: agent{
+					id:       res.Id,
+					dc:       res.DataCenter,
+					addr:     res.Addr,
+					isServer: res.IsServer,
+				},
 			}
 			// check weather requested id is exist or not
 			if _, exist := a.childs[res.Id]; exist {
@@ -44,7 +50,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 			a.childs[res.Id] = c
 			a.weight++
 			joined = true
-			fmt.Printf("Added new client - ID=%s\n", c.Id)
+			fmt.Printf("Added new client - ID=%s\n", c.id)
 
 			// Dial back to joined server
 			go func() {
@@ -61,13 +67,13 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 			if joined {
 				a.weight--
 				c.stream.err <- fmt.Errorf("client disconnected")
-				fmt.Printf("Disconnect client - ID=%s\n", c.Id)
+				fmt.Printf("Disconnect client - ID=%s\n", c.id)
 
 				// send change for remove client to leader
 				err := a.syncChangeToLeader(NodeInfo{
-					Id:       c.Id,
-					Address:  c.Addr,
-					IsServer: c.IsServer,
+					Id:       c.id,
+					Address:  c.addr,
+					IsServer: c.isServer,
 				}, ChangeActionRemove)
 				if err != nil {
 					log.Fatalf("error in sync change : %s", err.Error())
