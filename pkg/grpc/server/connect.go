@@ -9,7 +9,14 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
+const (
+	StatusDisconnected = "disconnected"
+	StatusConnected    = "connected"
+	StatusConnecting   = "connecting"
+)
+
 func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
+	var done = make(chan bool, 1)
 	var joined bool
 	var c *child
 	var resCh = make(chan *proto.ConnectMessage, 1)
@@ -42,22 +49,36 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 					isServer: res.IsServer,
 				},
 			}
-			// check weather requested id is exist or not
-			if _, exist := a.childs[res.Id]; exist {
-				return fmt.Errorf("this join id already exist : %s", res.Id)
+			// store client connection
+			err := addChild(a, c) // add child
+			if err != nil {
+				return err
 			}
-			// add requested to childs list
-			a.childs[res.Id] = c
-			a.weight++
 			joined = true
 			fmt.Printf("Added new client - ID=%s\n", c.id)
 
 			// Dial back to joined server
 			go func() {
-				err := a.ConnectToChild(c)
+				err := a.ConnectToChild(c, done)
 				if err != nil {
 					a.CloseChild(c)
 					errCh <- err
+				}
+			}()
+
+			// Send child status to leader
+			go func() {
+				// wait for child to connect done
+				<-done
+				// then, send changes to leader
+				err := a.syncChangeToLeader(NodeInfo{
+					Id:       c.id,
+					Address:  c.addr,
+					IsServer: c.isServer,
+					ParentId: a.id,
+				}, ChangeActionAdd)
+				if err != nil {
+					errCh <- fmt.Errorf("error in sync change : %s", err.Error())
 				}
 			}()
 
@@ -65,7 +86,9 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 		case err := <-errCh:
 			log.Println("conenct error : ", err.Error())
 			if joined {
-				a.weight--
+				// leave child from joined server
+				leaveChild(a, c)
+				// set error to child stream
 				c.stream.err <- fmt.Errorf("client disconnected")
 				fmt.Printf("Disconnect client - ID=%s\n", c.id)
 
@@ -111,6 +134,26 @@ func (a *agent) syncChangeToLeader(ni NodeInfo, action int32) error {
 			}
 		}
 	}
+
+	return nil
+}
+func leaveChild(a *agent, c *child) error {
+	// delete(a.childs, c.id)
+	if _, exist := a.childs[c.id]; exist {
+		return fmt.Errorf("this join id is not exist for leaving : %s", c.id)
+	}
+	a.childs[c.id].status = StatusDisconnected
+	a.weight--
+	return nil
+}
+func addChild(a *agent, c *child) error {
+	if _, exist := a.childs[c.id]; exist {
+		return fmt.Errorf("this join id already exist : %s", c.id)
+	}
+	// add requested to childs list
+	c.status = StatusConnecting
+	a.childs[c.id] = c
+	a.weight++
 
 	return nil
 }

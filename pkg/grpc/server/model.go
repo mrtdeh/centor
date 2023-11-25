@@ -33,6 +33,7 @@ type parent struct {
 }
 
 type child struct {
-	agent  // child agent information
-	stream // stream of the child server
+	agent         // child agent information
+	stream        // stream of the child server
+	status string // status of child in the cluster
 }
