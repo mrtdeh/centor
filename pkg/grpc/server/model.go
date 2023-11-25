@@ -28,17 +28,11 @@ type stream struct {
 }
 
 type parent struct {
-	agent
-	// id        string // id of the parent
-	// isLeader  bool   // is this node leader or not
-	// isPrimary bool   // is this node primary server or not
-	stream
+	agent  // parent agent information
+	stream // stream of parent server
 }
 
 type child struct {
-	agent
-	// Id       string // id of the child
-	// Addr     string // address of the child
-	// IsServer bool   // is this node a server or not
-	stream // stream of the child
+	agent  // child agent information
+	stream // stream of the child server
 }
