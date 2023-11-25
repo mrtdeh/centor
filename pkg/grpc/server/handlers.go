@@ -9,7 +9,7 @@ import (
 
 func Call() (string, error) {
 
-	res, err := a.parent.proto.Call(context.Background(), &proto.CallRequest{
+	res, err := a.Call(context.Background(), &proto.CallRequest{
 		AgentId: a.id,
 	})
 	if err != nil {
