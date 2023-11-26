@@ -45,7 +45,7 @@ func Start(cnf Config) error {
 		var err error
 		go func() {
 			for {
-				// try connect to parent server
+				// try connect to leader server
 				err = a.ConnectToParent(connectConfig{
 					ServersAddresses: cnf.Replica,
 				})
@@ -67,11 +67,12 @@ func Start(cnf Config) error {
 			DataCenter: a.dc,
 		}
 
+		// connect to primary server and update node info
 		if len(cnf.Primaries) > 0 {
 			var err error
 			go func() {
 				for {
-					// try connect to parent server
+					// try connect to primary server
 					err = a.ConnectToParent(connectConfig{
 						ConnectToPrimary: true,
 						ServersAddresses: cnf.Primaries,

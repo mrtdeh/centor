@@ -37,9 +37,10 @@ func main() {
 		httpServer := api_server.HttpServer{
 			Host:   "localhost",
 			Port:   9090,
-			Debug:  true,
+			Debug:  false,
 			Router: routers.InitRouter(),
 		}
+		log.Printf("initil api server an address %s:%d\n", httpServer.Host, httpServer.Port)
 
 		go func() {
 			log.Fatal(httpServer.Serve())
