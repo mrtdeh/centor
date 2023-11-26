@@ -15,9 +15,8 @@ type agent struct {
 	isReady   bool   // is this node ready or not
 	weight    int    // weight of this node in the cluster
 
-	servers []string          // servers in the cluster
-	parent  *parent           // parent of this node in the cluster or in primary cluster
-	childs  map[string]*child // childs of this node in the cluster
+	parent *parent           // parent of this node in the cluster or in primary cluster
+	childs map[string]*child // childs of this node in the cluster
 }
 
 type stream struct {

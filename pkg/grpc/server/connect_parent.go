@@ -9,29 +9,25 @@ import (
 )
 
 type connectConfig struct {
+	ServersAddresses []string
 	ConnectToPrimary bool
 }
 
-func (a *agent) ConnectToParent(cc *connectConfig) error {
-	if len(a.servers) == 0 {
+func (a *agent) ConnectToParent(cc connectConfig) error {
+	if len(cc.ServersAddresses) == 0 {
 		return nil
 	}
-
-	var parentIsPrimary bool
-	if cc != nil {
-		parentIsPrimary = cc.ConnectToPrimary
-	}
-	fmt.Println("parentIsPrimary : ", parentIsPrimary)
+	servers := cc.ServersAddresses
 
 	// master election for servers / best election for clients
 	var si *ServerInfo
 	var err error
 	if a.isServer {
 		// select leader only
-		si, err = leaderElect(a.servers)
+		si, err = leaderElect(servers)
 	} else {
 		// select best server in server's pool
-		si, err = bestElect(a.servers)
+		si, err = bestElect(servers)
 	}
 	if err != nil {
 		return err
@@ -49,7 +45,7 @@ func (a *agent) ConnectToParent(cc *connectConfig) error {
 		agent: agent{ // parent agent
 			id:        si.Id,
 			isLeader:  si.IsLeader,
-			isPrimary: parentIsPrimary,
+			isPrimary: cc.ConnectToPrimary,
 		},
 		stream: stream{ // parent stream
 			conn:  conn,

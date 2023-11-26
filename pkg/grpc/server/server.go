@@ -38,7 +38,6 @@ func Start(cnf Config) error {
 		childs:   make(map[string]*child),
 		isServer: cnf.IsServer,
 		isLeader: cnf.IsLeader,
-		servers:  cnf.Replica,
 	}
 
 	// connect to leader if not a leader and there are servers in the cluster
@@ -47,7 +46,9 @@ func Start(cnf Config) error {
 		go func() {
 			for {
 				// try connect to parent server
-				err = a.ConnectToParent(nil)
+				err = a.ConnectToParent(connectConfig{
+					ServersAddresses: cnf.Replica,
+				})
 				if err != nil {
 					fmt.Println(err.Error())
 				}
@@ -70,8 +71,9 @@ func Start(cnf Config) error {
 			go func() {
 				for {
 					// try connect to parent server
-					err = a.ConnectToParent(&connectConfig{
+					err = a.ConnectToParent(connectConfig{
 						ConnectToPrimary: true,
+						ServersAddresses: cnf.Primaries,
 					})
 					if err != nil {
 						fmt.Println(err.Error())

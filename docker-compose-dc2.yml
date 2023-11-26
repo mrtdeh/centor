@@ -13,7 +13,7 @@ services:
       - SERVER=true
       - LEADER=true
       - ALTERNATIVE_HOST=centor-server-2-1
-      # - PRIMARIES=centor-server-1
+      - PRIMARIES=centor-server-1-1:3000
     ports:
       - "9091:9090"
 

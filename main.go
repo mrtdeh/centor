@@ -28,7 +28,7 @@ func main() {
 
 	var primariesAddrs []string
 	pd := cnf.PrimaryServersAddr
-	if sd != "" {
+	if pd != "" {
 		primariesAddrs = strings.Split(strings.TrimSpace(pd), ",")
 	}
 
