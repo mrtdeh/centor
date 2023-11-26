@@ -60,10 +60,11 @@ func Start(cnf Config) error {
 		// if is a leader or there are no servers in the cluster
 		// add current node info to nodes info map
 		nodesInfo[a.id] = NodeInfo{
-			Id:       a.id,
-			Address:  a.addr,
-			IsServer: true,
-			IsLeader: true,
+			Id:         a.id,
+			Address:    a.addr,
+			IsServer:   true,
+			IsLeader:   true,
+			DataCenter: a.dc,
 		}
 
 		if len(cnf.Primaries) > 0 {

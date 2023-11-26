@@ -53,6 +53,12 @@ func (a *agent) ConnectToParent(cc connectConfig) error {
 			err:   make(chan error, 1),
 		},
 	}
+	if a.isLeader {
+		if n, ok := nodesInfo[a.id]; ok {
+			n.ParentId = si.Id
+			nodesInfo[a.id] = n
+		}
+	}
 
 	// create sync stream rpc to parent server
 	err = grpc_Connect(context.Background(), a)
