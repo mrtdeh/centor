@@ -48,6 +48,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 					dc:       res.DataCenter,
 					addr:     res.Addr,
 					isServer: res.IsServer,
+					isLeader: res.IsLeader,
 				},
 			}
 			// store client connection
@@ -73,10 +74,12 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 				<-done
 				// then, send changes to leader
 				err := a.syncChangeToLeader(NodeInfo{
-					Id:       c.id,
-					Address:  c.addr,
-					IsServer: c.isServer,
-					ParentId: a.id,
+					Id:         c.id,
+					Address:    c.addr,
+					IsServer:   c.isServer,
+					IsLeader:   c.isLeader,
+					ParentId:   a.id,
+					DataCenter: c.dc,
 				}, ChangeActionAdd)
 				if err != nil {
 					errCh <- fmt.Errorf("error in sync change : %s", err.Error())

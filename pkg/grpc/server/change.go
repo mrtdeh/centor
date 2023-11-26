@@ -13,13 +13,14 @@ var (
 )
 
 type NodeInfo struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
-	Address  string `json:"address"`
-	Port     string `json:"port"`
-	IsServer bool   `json:"is_server"`
-	IsLeader bool   `json:"is_leader"`
-	ParentId string `json:"parent_id"`
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Address    string `json:"address"`
+	Port       string `json:"port"`
+	IsServer   bool   `json:"is_server"`
+	IsLeader   bool   `json:"is_leader"`
+	ParentId   string `json:"parent_id"`
+	DataCenter string `json:"data_center"`
 }
 
 const (

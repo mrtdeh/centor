@@ -105,6 +105,7 @@ func grpc_Connect(ctx context.Context, a *agent) error {
 		DataCenter: a.dc,
 		Addr:       a.addr,
 		IsServer:   a.isServer,
+		IsLeader:   a.isLeader,
 	})
 	if err != nil {
 		return fmt.Errorf("error in send connect message : %s", err.Error())

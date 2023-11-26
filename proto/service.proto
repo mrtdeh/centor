@@ -40,7 +40,8 @@ message ConnectMessage {
   string id = 1;
   string addr = 2;
   bool is_server = 3;
-  string DataCenter = 4;
+  bool is_leader = 4;
+  string DataCenter = 5;
 }
 message ConnectBackMessage {
   string id = 1;
