@@ -11,7 +11,7 @@ type Config struct {
 	Host       string   // Host of the server
 	AltHost    string   // alternative host of the server (optional)
 	Port       uint     // Port of the server
-	Replica    []string // servers addresses for replication
+	Servers    []string // servers addresses for replication
 	Primaries  []string // primaries addresses
 	IsServer   bool     // is this node a server or not
 	IsLeader   bool     // is this node leader or not
@@ -40,14 +40,24 @@ func Start(cnf Config) error {
 		isLeader: cnf.IsLeader,
 	}
 
-	// connect to leader if not a leader and there are servers in the cluster
-	if !cnf.IsLeader && len(cnf.Replica) > 0 {
+	var finishCh = make(chan struct{}, 1)
+	go func() {
+		select {
+		case <-finishCh:
+			a.isReady = true
+			return
+		}
+	}()
+
+	// *** CONNECT TO LEADER SERVER *** if this node is not a leader
+	if !cnf.IsLeader && len(cnf.Servers) > 0 {
 		var err error
 		go func() {
 			for {
 				// try connect to leader server
 				err = a.ConnectToParent(connectConfig{
-					ServersAddresses: cnf.Replica,
+					ServersAddresses: cnf.Servers,
+					OnFinishChan:     finishCh,
 				})
 				if err != nil {
 					fmt.Println(err.Error())
@@ -56,6 +66,7 @@ func Start(cnf Config) error {
 				time.Sleep(time.Second * 1)
 			}
 		}()
+
 	} else {
 		// if is a leader or there are no servers in the cluster
 		// add current node info to nodes info map
@@ -67,7 +78,7 @@ func Start(cnf Config) error {
 			DataCenter: a.dc,
 		}
 
-		// connect to primary server and update node info
+		// *** CONNECT TO PRIMARY SERVER *** if the primary server is available
 		if len(cnf.Primaries) > 0 {
 			var err error
 			go func() {
@@ -76,6 +87,7 @@ func Start(cnf Config) error {
 					err = a.ConnectToParent(connectConfig{
 						ConnectToPrimary: true,
 						ServersAddresses: cnf.Primaries,
+						OnFinishChan:     finishCh,
 					})
 					if err != nil {
 						fmt.Println(err.Error())
@@ -89,6 +101,5 @@ func Start(cnf Config) error {
 	}
 
 	fmt.Println("DataCenter : ", cnf.DataCenter)
-
 	return a.Listen()
 }

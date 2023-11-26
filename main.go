@@ -9,6 +9,7 @@ import (
 	api_server "github.com/mrtdeh/centor/pkg/api"
 	"github.com/mrtdeh/centor/pkg/config"
 	grpc_server "github.com/mrtdeh/centor/pkg/grpc/server"
+	pluginManager "github.com/mrtdeh/centor/plugins"
 	"github.com/mrtdeh/centor/routers"
 )
 
@@ -35,9 +36,8 @@ func main() {
 	// initilize api server
 	if config.WithAPI {
 		httpServer := api_server.HttpServer{
-			Host:   "localhost",
+			Host:   "0.0.0.0",
 			Port:   9090,
-			Debug:  false,
 			Router: routers.InitRouter(),
 		}
 		log.Printf("initil api server an address %s:%d\n", httpServer.Host, httpServer.Port)
@@ -46,6 +46,9 @@ func main() {
 			log.Fatal(httpServer.Serve())
 		}()
 	}
+	pluginManager.Load(pluginManager.Config{
+		GRPCHandler: &grpc_server.GRPC_Handlers{},
+	})
 
 	// initilize gRPC server
 	err := grpc_server.Start(grpc_server.Config{
@@ -56,7 +59,7 @@ func main() {
 		Port:       cnf.Port,
 		IsServer:   cnf.IsServer,
 		IsLeader:   cnf.IsLeader,
-		Replica:    serversAddrs,
+		Servers:    serversAddrs,
 		Primaries:  primariesAddrs,
 	})
 	if err != nil {

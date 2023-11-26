@@ -11,6 +11,7 @@ import (
 type connectConfig struct {
 	ServersAddresses []string
 	ConnectToPrimary bool
+	OnFinishChan     chan struct{}
 }
 
 func (a *agent) ConnectToParent(cc connectConfig) error {
@@ -69,7 +70,6 @@ func (a *agent) ConnectToParent(cc connectConfig) error {
 	// health check conenction for parent server
 	go connHealthCheck(&a.parent.stream, time.Second*2)
 
-	// @@@ we can add Sync function to connect bi-directional to server
-
+	cc.OnFinishChan <- struct{}{}
 	return <-a.parentErr()
 }

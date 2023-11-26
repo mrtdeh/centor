@@ -9,16 +9,13 @@ import (
 type HttpServer struct {
 	Host   string
 	Port   uint
-	Debug  bool
 	Router http.Handler
 }
 
 func (s *HttpServer) Serve() error {
 
-	endPoint := fmt.Sprintf("0.0.0.0:%d", s.Port) // Debug Mode
-	if !s.Debug {                                 // Release Mode
-		endPoint = fmt.Sprintf("%s:%d", s.Host, s.Port)
-	}
+	// Release Mode
+	endPoint := fmt.Sprintf("%s:%d", s.Host, s.Port)
 
 	server := &http.Server{
 		Addr:        endPoint,

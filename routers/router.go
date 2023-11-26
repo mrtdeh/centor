@@ -1,6 +1,8 @@
 package routers
 
 import (
+	"io"
+
 	"github.com/gin-gonic/gin"
 	api_v1 "github.com/mrtdeh/centor/routers/api/v1"
 
@@ -13,6 +15,10 @@ func pingHandler(c *gin.Context) {
 }
 
 func InitRouter() *gin.Engine {
+
+	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = io.Discard
+
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
