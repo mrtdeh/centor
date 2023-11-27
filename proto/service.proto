@@ -65,20 +65,43 @@ message NodesChange {
 }
 
 
+message SendFileRequest{
+  oneof data{
+    FileInfo info = 1;
+    bytes chunk_data = 2;
+    bool   end = 3;
+  }
+}
+message FileInfo {
+  string id  = 1;
+  string name = 2;
+  uint32 size = 3;
+}
+
+message SendFileReponse{
+  string id = 1;
+  string path = 2;
+}
+
+message ExecRequest{
+  string node_id = 1;
+  string command = 2;
+}
+message ExecResponse{
+  string output = 1;
+}
+
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
-
   rpc Connect(stream ConnectMessage) returns (Close); // child -> parent
   rpc ConnectBack(stream ConnectBackMessage) returns (Close); // parent -> child
   rpc Ping(PingRequest) returns (PongResponse);
   rpc Call(CallRequest) returns (CallResponse);
 
-  // get node's change from servers to leader
-  // changes include:
-  // - added new node 
-  // - leaved a node
+  rpc SendFile(stream SendFileRequest) returns (SendFileReponse);
+  rpc Exec(ExecRequest) returns (ExecResponse);
+
   rpc Change(ChangeRequest) returns (Close);
-  // get latest node's change from leader to servers and childs 
   rpc Notice(NoticeRequest) returns (Close);
 }
 

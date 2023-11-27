@@ -27,12 +27,9 @@ type DiscoveryClient interface {
 	ConnectBack(ctx context.Context, opts ...grpc.CallOption) (Discovery_ConnectBackClient, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error)
 	Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
-	// get node's change from servers to leader
-	// changes include:
-	// - added new node
-	// - leaved a node
+	SendFile(ctx context.Context, opts ...grpc.CallOption) (Discovery_SendFileClient, error)
+	Exec(ctx context.Context, in *ExecRequest, opts ...grpc.CallOption) (*ExecResponse, error)
 	Change(ctx context.Context, in *ChangeRequest, opts ...grpc.CallOption) (*Close, error)
-	// get latest node's change from leader to servers and childs
 	Notice(ctx context.Context, in *NoticeRequest, opts ...grpc.CallOption) (*Close, error)
 }
 
@@ -139,6 +136,49 @@ func (c *discoveryClient) Call(ctx context.Context, in *CallRequest, opts ...grp
 	return out, nil
 }
 
+func (c *discoveryClient) SendFile(ctx context.Context, opts ...grpc.CallOption) (Discovery_SendFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Discovery_ServiceDesc.Streams[2], "/proto.Discovery/SendFile", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &discoverySendFileClient{stream}
+	return x, nil
+}
+
+type Discovery_SendFileClient interface {
+	Send(*SendFileRequest) error
+	CloseAndRecv() (*SendFileReponse, error)
+	grpc.ClientStream
+}
+
+type discoverySendFileClient struct {
+	grpc.ClientStream
+}
+
+func (x *discoverySendFileClient) Send(m *SendFileRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *discoverySendFileClient) CloseAndRecv() (*SendFileReponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(SendFileReponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *discoveryClient) Exec(ctx context.Context, in *ExecRequest, opts ...grpc.CallOption) (*ExecResponse, error) {
+	out := new(ExecResponse)
+	err := c.cc.Invoke(ctx, "/proto.Discovery/Exec", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *discoveryClient) Change(ctx context.Context, in *ChangeRequest, opts ...grpc.CallOption) (*Close, error) {
 	out := new(Close)
 	err := c.cc.Invoke(ctx, "/proto.Discovery/Change", in, out, opts...)
@@ -166,12 +206,9 @@ type DiscoveryServer interface {
 	ConnectBack(Discovery_ConnectBackServer) error
 	Ping(context.Context, *PingRequest) (*PongResponse, error)
 	Call(context.Context, *CallRequest) (*CallResponse, error)
-	// get node's change from servers to leader
-	// changes include:
-	// - added new node
-	// - leaved a node
+	SendFile(Discovery_SendFileServer) error
+	Exec(context.Context, *ExecRequest) (*ExecResponse, error)
 	Change(context.Context, *ChangeRequest) (*Close, error)
-	// get latest node's change from leader to servers and childs
 	Notice(context.Context, *NoticeRequest) (*Close, error)
 }
 
@@ -193,6 +230,12 @@ func (UnimplementedDiscoveryServer) Ping(context.Context, *PingRequest) (*PongRe
 }
 func (UnimplementedDiscoveryServer) Call(context.Context, *CallRequest) (*CallResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
+}
+func (UnimplementedDiscoveryServer) SendFile(Discovery_SendFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method SendFile not implemented")
+}
+func (UnimplementedDiscoveryServer) Exec(context.Context, *ExecRequest) (*ExecResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Exec not implemented")
 }
 func (UnimplementedDiscoveryServer) Change(context.Context, *ChangeRequest) (*Close, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Change not implemented")
@@ -318,6 +361,50 @@ func _Discovery_Call_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Discovery_SendFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DiscoveryServer).SendFile(&discoverySendFileServer{stream})
+}
+
+type Discovery_SendFileServer interface {
+	SendAndClose(*SendFileReponse) error
+	Recv() (*SendFileRequest, error)
+	grpc.ServerStream
+}
+
+type discoverySendFileServer struct {
+	grpc.ServerStream
+}
+
+func (x *discoverySendFileServer) SendAndClose(m *SendFileReponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *discoverySendFileServer) Recv() (*SendFileRequest, error) {
+	m := new(SendFileRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _Discovery_Exec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DiscoveryServer).Exec(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Discovery/Exec",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DiscoveryServer).Exec(ctx, req.(*ExecRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Discovery_Change_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ChangeRequest)
 	if err := dec(in); err != nil {
@@ -374,6 +461,10 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Discovery_Call_Handler,
 		},
 		{
+			MethodName: "Exec",
+			Handler:    _Discovery_Exec_Handler,
+		},
+		{
 			MethodName: "Change",
 			Handler:    _Discovery_Change_Handler,
 		},
@@ -391,6 +482,11 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ConnectBack",
 			Handler:       _Discovery_ConnectBack_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "SendFile",
+			Handler:       _Discovery_SendFile_Handler,
 			ClientStreams: true,
 		},
 	},
