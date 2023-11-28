@@ -9,6 +9,8 @@ import (
 	api_server "github.com/mrtdeh/centor/pkg/api"
 	"github.com/mrtdeh/centor/pkg/config"
 	grpc_server "github.com/mrtdeh/centor/pkg/grpc/server"
+	pluginManager "github.com/mrtdeh/centor/plugins"
+	PluginKits "github.com/mrtdeh/centor/plugins/kits"
 	"github.com/mrtdeh/centor/routers"
 )
 
@@ -36,12 +38,12 @@ func main() {
 	router := routers.InitRouter()
 
 	// bootstrap plugins
-	// pluginManager.Bootstrap(pluginManager.Config{
-	// 	Config: PluginKits.Config{
-	// 		GRPCHandler: &grpc_server.GRPC_Handlers{},
-	// 		RouterAPI:   router,
-	// 	},
-	// })
+	pluginManager.Bootstrap(pluginManager.Config{
+		Config: PluginKits.Config{
+			GRPCHandler: &grpc_server.GRPC_Handlers{},
+			RouterAPI:   router,
+		},
+	})
 
 	// start api server
 	if config.WithAPI {

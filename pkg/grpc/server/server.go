@@ -40,23 +40,11 @@ func Start(cnf Config) error {
 		isLeader: cnf.IsLeader,
 	}
 
-	// *** CONNECT TO LEADER SERVER *** if this node is not a leader
-	if !cnf.IsLeader && len(cnf.Servers) > 0 {
-		var err error
-		go func() {
-			for {
-				// try connect to leader server
-				err = a.ConnectToParent(connectConfig{
-					ServersAddresses: cnf.Servers,
-				})
-				if err != nil {
-					fmt.Println(err.Error())
-				}
-				// retry delay time 1 second
-				time.Sleep(time.Second * 1)
-			}
-		}()
+	var servers []string
+	var connectToPrimary bool
 
+	if !cnf.IsLeader && len(cnf.Servers) > 0 {
+		servers = cnf.Servers
 	} else {
 		// if is a leader or there are no servers in the cluster
 		// add current node info to nodes info map
@@ -68,26 +56,26 @@ func Start(cnf Config) error {
 			DataCenter: a.dc,
 		}
 
-		// *** CONNECT TO PRIMARY SERVER *** if the primary server is available
 		if len(cnf.Primaries) > 0 {
-			var err error
-			go func() {
-				for {
-					// try connect to primary server
-					err = a.ConnectToParent(connectConfig{
-						ConnectToPrimary: true,
-						ServersAddresses: cnf.Primaries,
-					})
-					if err != nil {
-						fmt.Println(err.Error())
-					}
-					// retry delay time 1 second
-					time.Sleep(time.Second * 1)
-				}
-			}()
+			connectToPrimary = true
+			servers = cnf.Primaries
 		}
-
 	}
+
+	go func() {
+		for {
+			// try connect to parent server
+			err := a.ConnectToParent(connectConfig{
+				ConnectToPrimary: connectToPrimary,
+				ServersAddresses: servers,
+			})
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			// retry delay time 1 second
+			time.Sleep(time.Second * 1)
+		}
+	}()
 
 	fmt.Println("DataCenter : ", cnf.DataCenter)
 	return a.Listen()
