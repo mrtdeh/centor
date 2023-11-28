@@ -93,8 +93,7 @@ message ExecResponse{
 
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
-  rpc Connect(stream ConnectMessage) returns (Close); // child -> parent
-  rpc ConnectBack(stream ConnectBackMessage) returns (Close); // parent -> child
+  rpc Connect(stream ConnectMessage) returns (stream ConnectBackMessage); // child -> parent
   rpc Ping(PingRequest) returns (PongResponse);
   rpc Call(CallRequest) returns (CallResponse);
 

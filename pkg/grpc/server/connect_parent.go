@@ -62,14 +62,15 @@ func (a *agent) ConnectToParent(cc connectConfig) error {
 	}
 
 	// create sync stream rpc to parent server
-	err = grpc_Connect(context.Background(), a)
-	if err != nil {
-		return fmt.Errorf("error in sync : %s", err.Error())
-	}
+	go func() {
+		err = grpc_Connect(context.Background(), a)
+		if err != nil {
+			a.parent.stream.err <- fmt.Errorf("error in sync : %s", err.Error())
+		}
+	}()
 
 	// health check conenction for parent server
 	go connHealthCheck(&a.parent.stream, time.Second*2)
 
-	cc.OnFinishChan <- struct{}{}
-	return <-a.parentErr()
+	return <-a.parent.stream.err
 }

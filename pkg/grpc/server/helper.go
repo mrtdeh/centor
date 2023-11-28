@@ -94,13 +94,13 @@ func grpc_Dial(addr string) (*grpc.ClientConn, error) {
 }
 
 func grpc_Connect(ctx context.Context, a *agent) error {
-	str, err := a.parent.proto.Connect(ctx)
+	stream, err := a.parent.proto.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("error in create connect stream : %s", err.Error())
 	}
 
 	// send connect message to parent server
-	err = str.Send(&proto.ConnectMessage{
+	err = stream.Send(&proto.ConnectMessage{
 		Id:         a.id,
 		DataCenter: a.dc,
 		Addr:       a.addr,
@@ -111,22 +111,23 @@ func grpc_Connect(ctx context.Context, a *agent) error {
 		return fmt.Errorf("error in send connect message : %s", err.Error())
 	}
 
-	return nil
-}
-
-func grpc_ConnectBack(ctx context.Context, s *stream, agentId string) error {
-	str, err := s.proto.ConnectBack(ctx)
-	if err != nil {
-		return fmt.Errorf("error in create connect back stream : %s", err.Error())
+	var pid string
+	for {
+		// receive connect message from parent server
+		res, err := stream.Recv()
+		if err != nil {
+			a.parent.stream.err <- err
+			if pid != "" {
+				fmt.Printf("Disconnect parent - ID=%s\n", pid)
+			} else {
+				return fmt.Errorf("error in receive connect message : %s", err.Error())
+			}
+			return err
+		}
+		if res != nil {
+			pid = res.Id
+		}
+		fmt.Printf("Conenct Back from parent - ID=%s\n", pid)
 	}
 
-	// send connect back message to parent server
-	err = str.Send(&proto.ConnectBackMessage{
-		Id: agentId,
-	})
-	if err != nil {
-		return fmt.Errorf("error in send connect back message : %s", err.Error())
-	}
-
-	return nil
 }

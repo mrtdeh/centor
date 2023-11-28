@@ -1,11 +1,8 @@
 package grpc_server
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/mrtdeh/centor/proto"
 )
@@ -54,16 +51,20 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 			// store client connection
 			err := addChild(a, c) // add child
 			if err != nil {
-				return err
+				errCh <- err
 			}
 			joined = true
-			fmt.Printf("Added new client - ID=%s\n", c.id)
+
+			// send back agent id to connected client
+			err = stream.Send(&proto.ConnectBackMessage{Id: a.id})
+			if err != nil {
+				errCh <- err
+			}
 
 			// Dial back to joined server
 			go func() {
-				err := a.ConnectToChild(c, done)
+				err := a.CreateChildStream(c, done)
 				if err != nil {
-					a.CloseChild(c)
 					errCh <- err
 				}
 			}()
@@ -73,14 +74,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 				// wait for child to connect done
 				<-done
 				// then, send changes to leader
-				err := a.syncChangeToLeader(NodeInfo{
-					Id:         c.id,
-					Address:    c.addr,
-					IsServer:   c.isServer,
-					IsLeader:   c.isLeader,
-					ParentId:   a.id,
-					DataCenter: c.dc,
-				}, ChangeActionAdd)
+				err := a.syncAgentChange(&c.agent, ChangeActionAdd)
 				if err != nil {
 					errCh <- fmt.Errorf("error in sync change : %s", err.Error())
 				}
@@ -92,16 +86,9 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 			if joined {
 				// leave child from joined server
 				leaveChild(a, c)
-				// set error to child stream
-				c.stream.err <- fmt.Errorf("client disconnected")
-				fmt.Printf("Disconnect client - ID=%s\n", c.id)
 
 				// send change for remove client to leader
-				err := a.syncChangeToLeader(NodeInfo{
-					Id:       c.id,
-					Address:  c.addr,
-					IsServer: c.isServer,
-				}, ChangeActionRemove)
+				err := a.syncAgentChange(&c.agent, ChangeActionRemove)
 				if err != nil {
 					log.Fatalf("error in sync change : %s", err.Error())
 				}
@@ -112,53 +99,18 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 	} // end for
 }
 
-func (a *agent) syncChangeToLeader(ni NodeInfo, action int32) error {
-	if a.isLeader {
-		err := a.applyChange(ni.Id, ni, action)
-		if err != nil {
-			return fmt.Errorf("error in applyChange : %s", err.Error())
-		}
-	} else {
-		for {
-			if a.parent != nil {
-				data, err := json.Marshal(ni)
-				if err != nil {
-					return err
-				}
-				_, err = a.parent.proto.Change(context.Background(), &proto.ChangeRequest{
-					Change: &proto.ChangeRequest_NodesChange{
-						NodesChange: &proto.NodesChange{
-							Id:     ni.Id,
-							Action: action,
-							Data:   string(data),
-						},
-					},
-				})
-				if err != nil {
-					log.Printf("error in syncChangeToLeader : %s", err.Error())
-					continue
-				}
-				// break out of for
-				break
-			}
-			fmt.Println("retry to sync")
-			time.Sleep(time.Millisecond * 100)
-		}
-	}
-
-	return nil
-}
-func leaveChild(a *agent, c *child) error {
-	// delete(a.childs, c.id)
-	if _, exist := a.childs[c.id]; exist {
-		return fmt.Errorf("this join id is not exist for leaving : %s", c.id)
+func leaveChild(a *agent, c *child) {
+	if _, exist := a.childs[c.id]; !exist {
+		fmt.Printf("this join id is not exist for leaving : %s", c.id)
+		return
 	}
 	a.childs[c.id].status = StatusDisconnected
 	a.weight--
-	return nil
+	c.stream.err <- fmt.Errorf("client disconnected")
+	fmt.Printf("Disconnect client - ID=%s\n", c.id)
 }
 func addChild(a *agent, c *child) error {
-	if _, exist := a.childs[c.id]; exist {
+	if cc, exist := a.childs[c.id]; exist && cc.status == StatusConnected {
 		return fmt.Errorf("this join id already exist : %s", c.id)
 	}
 	// add requested to childs list
@@ -166,5 +118,6 @@ func addChild(a *agent, c *child) error {
 	a.childs[c.id] = c
 	a.weight++
 
+	fmt.Printf("Added new client - ID=%s\n", c.id)
 	return nil
 }
