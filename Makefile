@@ -26,7 +26,10 @@ docker-up:
 docker-up-dc2: 
 	docker compose -p dc2 -f ./docker-compose-dc2.yml up --force-recreate -d
 
-	
+docker-down-all:
+	docker compose -p dc1  down  && docker compose -p dc2 -f ./docker-compose-dc2.yml down 
+
+
 
 
 clean:

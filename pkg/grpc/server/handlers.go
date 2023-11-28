@@ -1,12 +1,11 @@
 package grpc_server
 
 import (
-	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -15,43 +14,51 @@ import (
 
 type GRPC_Handlers struct{}
 
-func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filepath string) error {
-	file, err := os.Open(filepath)
-	if err != nil {
-		log.Fatal("cannot open txt file: ", err)
-	}
-	defer file.Close()
+type FileHandler struct {
+	Name      string
+	Extension string
+	Data      []byte
+}
 
-	reader := bufio.NewReader(file)
+func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filename string, data []byte) error {
+
+	reader := bytes.NewReader(data)
+	filesize := reader.Size()
 	buffer := make([]byte, 1024)
-	stat, _ := file.Stat()
 
 	if n, ok := nodesInfo[nodeId]; ok {
+		// fmt.Printf("send to : %+v\n", n)
 		conn, err := grpc_Dial(n.Address)
 		if err != nil {
 			return err
 		}
-		defer conn.Close()
+		defer func() {
+			time.Sleep(time.Second)
+			conn.Close()
+			fmt.Println("closed connection")
+		}()
 
 		client := proto.NewDiscoveryClient(conn)
-		stream, err := client.SendFile(ctx)
+		stream, err := client.SendFile(context.Background())
 		if err != nil {
 			return err
 		}
-		defer stream.CloseSend()
 
 		firstInfo := &proto.SendFileRequest{
 			Data: &proto.SendFileRequest_Info{
 				Info: &proto.FileInfo{
-					Name: stat.Name(),
-					Size: uint32(stat.Size()),
+					Name: filename,
+					Size: uint32(filesize),
 				},
 			},
 		}
 		err = stream.Send(firstInfo)
 		if err != nil {
+			fmt.Println("debug send error : ", err)
 			return err
 		}
+
+		fmt.Println("debug send 1")
 
 		for {
 			n, err := reader.Read(buffer)
@@ -71,6 +78,7 @@ func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filepath string) e
 			if err != nil {
 				return err
 			}
+			fmt.Println("debug send 2")
 		}
 
 		endInfo := &proto.SendFileRequest{
@@ -82,6 +90,8 @@ func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filepath string) e
 		if err != nil {
 			return err
 		}
+		fmt.Println("debug send 3")
+
 	} else {
 		return fmt.Errorf("Node %s not found", nodeId)
 	}

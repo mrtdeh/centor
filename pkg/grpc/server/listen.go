@@ -16,5 +16,6 @@ func (a *agent) Listen() error {
 	}
 	proto.RegisterDiscoveryServer(grpcServer, a)
 	fmt.Println("listen an ", a.addr)
+	a.isReady = true
 	return grpcServer.Serve(listener)
 }

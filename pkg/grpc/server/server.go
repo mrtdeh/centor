@@ -40,15 +40,6 @@ func Start(cnf Config) error {
 		isLeader: cnf.IsLeader,
 	}
 
-	var finishCh = make(chan struct{}, 1)
-	go func() {
-		select {
-		case <-finishCh:
-			a.isReady = true
-			return
-		}
-	}()
-
 	// *** CONNECT TO LEADER SERVER *** if this node is not a leader
 	if !cnf.IsLeader && len(cnf.Servers) > 0 {
 		var err error
@@ -57,7 +48,6 @@ func Start(cnf Config) error {
 				// try connect to leader server
 				err = a.ConnectToParent(connectConfig{
 					ServersAddresses: cnf.Servers,
-					OnFinishChan:     finishCh,
 				})
 				if err != nil {
 					fmt.Println(err.Error())
@@ -87,7 +77,6 @@ func Start(cnf Config) error {
 					err = a.ConnectToParent(connectConfig{
 						ConnectToPrimary: true,
 						ServersAddresses: cnf.Primaries,
-						OnFinishChan:     finishCh,
 					})
 					if err != nil {
 						fmt.Println(err.Error())

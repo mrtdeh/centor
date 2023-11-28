@@ -48,12 +48,20 @@ func (p *PluginProvider) Run() {
 
 }
 
+type SendFileRequest struct {
+	Filename string `json:"filename"`
+	Data     string `json:"data"`
+	NodeId   string `json:"node_id"`
+}
+
 func sendFile(c *gin.Context) {
+	var req SendFileRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
 
-	path := c.PostForm("path")
-	nodeId := c.PostForm("node_id")
-
-	err := h.SendFile(context.Background(), nodeId, path)
+	err := h.SendFile(context.Background(), req.NodeId, req.Filename, []byte(req.Data))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
