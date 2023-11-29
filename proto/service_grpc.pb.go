@@ -24,7 +24,6 @@ const _ = grpc.SupportPackageIsVersion7
 type DiscoveryClient interface {
 	GetInfo(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*InfoResponse, error)
 	Connect(ctx context.Context, opts ...grpc.CallOption) (Discovery_ConnectClient, error)
-	// rpc ConnectBack(stream ConnectBackMessage) returns (Close); // parent -> child
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error)
 	Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
 	SendFile(ctx context.Context, opts ...grpc.CallOption) (Discovery_SendFileClient, error)
@@ -166,7 +165,6 @@ func (c *discoveryClient) Notice(ctx context.Context, in *NoticeRequest, opts ..
 type DiscoveryServer interface {
 	GetInfo(context.Context, *EmptyRequest) (*InfoResponse, error)
 	Connect(Discovery_ConnectServer) error
-	// rpc ConnectBack(stream ConnectBackMessage) returns (Close); // parent -> child
 	Ping(context.Context, *PingRequest) (*PongResponse, error)
 	Call(context.Context, *CallRequest) (*CallResponse, error)
 	SendFile(Discovery_SendFileServer) error

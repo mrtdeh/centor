@@ -46,8 +46,10 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 					addr:     res.Addr,
 					isServer: res.IsServer,
 					isLeader: res.IsLeader,
+					parent:   &parent{agent: agent{}},
 				},
 			}
+			c.parent.id = res.ParentId
 			// store client connection
 			err := addChild(a, c) // add child
 			if err != nil {

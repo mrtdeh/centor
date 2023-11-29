@@ -2,7 +2,6 @@ package grpc_server
 
 import (
 	"context"
-	"log"
 
 	"github.com/mrtdeh/centor/proto"
 )
@@ -17,7 +16,7 @@ func (a *agent) Call(ctx context.Context, req *proto.CallRequest) (*proto.CallRe
 			AgentId: a.id,
 		})
 		if err != nil {
-			log.Fatal("error in call parent :", err.Error())
+			return &proto.CallResponse{}, err
 		}
 		tags = append(tags, res.Tags...)
 	}
@@ -29,7 +28,7 @@ func (a *agent) Call(ctx context.Context, req *proto.CallRequest) (*proto.CallRe
 					AgentId: a.id,
 				})
 				if err != nil {
-					log.Fatalf("error in call child %s : %s", c.id, err.Error())
+					return &proto.CallResponse{}, err
 				}
 				tags = append(tags, res.Tags...)
 			}

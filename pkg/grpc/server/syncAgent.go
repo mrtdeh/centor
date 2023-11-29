@@ -16,15 +16,19 @@ func (a *agent) syncAgentChange(ca *agent, action int32) error {
 		Address:    ca.addr,
 		IsServer:   ca.isServer,
 		IsLeader:   ca.isLeader,
+		IsPrimary:  ca.isPrimary,
 		DataCenter: ca.dc,
-		ParentId:   a.id,
+		ParentId:   ca.parent.id,
 	}
+	// if is leader then apply changes
 	if a.isLeader {
 		err := a.applyChange(ni.Id, ni, action)
 		if err != nil {
 			return fmt.Errorf("error in applyChange : %s", err.Error())
 		}
-	} else {
+	}
+	// and if also is not primary then send change to primary
+	if !a.isPrimary {
 		for {
 			if a.parent != nil {
 				data, err := json.Marshal(ni)

@@ -3,7 +3,6 @@ package grpc_server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/mrtdeh/centor/proto"
 )
@@ -11,7 +10,7 @@ import (
 func (a *agent) Notice(ctx context.Context, req *proto.NoticeRequest) (*proto.Close, error) {
 	c := &proto.Close{}
 	if a.isLeader {
-		return c, fmt.Errorf("this service is leader and can not call notice from here")
+		return c, nil
 	}
 
 	if nch := req.GetNodesChange(); nch != nil {

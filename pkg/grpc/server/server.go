@@ -40,6 +40,11 @@ func Start(cnf Config) error {
 		isLeader: cnf.IsLeader,
 	}
 
+	if cnf.IsLeader && len(cnf.Primaries) == 0 {
+		// if this node is a leader and no primaries are specified, this node becomes primary
+		a.isPrimary = true
+	}
+
 	var servers []string
 	var connectToPrimary bool
 
@@ -51,8 +56,9 @@ func Start(cnf Config) error {
 		nodesInfo[a.id] = NodeInfo{
 			Id:         a.id,
 			Address:    a.addr,
-			IsServer:   true,
-			IsLeader:   true,
+			IsServer:   a.isServer,
+			IsLeader:   a.isLeader,
+			IsPrimary:  a.isPrimary,
 			DataCenter: a.dc,
 		}
 
