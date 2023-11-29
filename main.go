@@ -38,12 +38,15 @@ func main() {
 	router := routers.InitRouter()
 
 	// bootstrap plugins
-	pluginManager.Bootstrap(pluginManager.Config{
+	err := pluginManager.Bootstrap(pluginManager.Config{
 		Config: PluginKits.Config{
 			GRPCHandler: &grpc_server.GRPC_Handlers{},
 			RouterAPI:   router,
 		},
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// start api server
 	if config.WithAPI {
@@ -60,7 +63,7 @@ func main() {
 	}
 
 	// start gRPC server
-	err := grpc_server.Start(grpc_server.Config{
+	err = grpc_server.Start(grpc_server.Config{
 		Name:       cnf.Name,
 		DataCenter: cnf.DataCenter,
 		Host:       cnf.Host,

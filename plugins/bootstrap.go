@@ -10,8 +10,8 @@ type Config struct {
 	PluginKits.Config
 }
 
-func Bootstrap(cnf Config) {
-	PluginKits.Loader(cnf.Config, func(pms *PluginKits.PluginManagerService) {
+func Bootstrap(cnf Config) error {
+	return PluginKits.Loader(cnf.Config, func(pms *PluginKits.PluginManagerService) {
 
 		pms.AddPlugin(&echo_plugin.PluginProvider{
 			PluginProps: PluginKits.PluginProps{

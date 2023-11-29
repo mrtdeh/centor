@@ -27,14 +27,12 @@ func (a *agent) SendFile(stream proto.Discovery_SendFileServer) error {
 			if err != nil {
 				return fmt.Errorf("Error creating file: %w", err)
 			}
-			fmt.Println("create new file : ", file.Name())
-
 		} else if chunk := msg.GetChunkData(); chunk != nil {
 			// write chunk's package to created file
 			file.Write(chunk)
 		} else if end := msg.GetEnd(); end {
 			// close created file
-			fmt.Println("end file : ", file.Name())
+			fmt.Println("recieved new file : ", file.Name())
 			file.Close()
 			break
 		}
@@ -45,7 +43,7 @@ func (a *agent) SendFile(stream proto.Discovery_SendFileServer) error {
 
 func createFile(info *proto.FileInfo) (*os.File, error) {
 	var err error
-	if err := os.Mkdir("/tmp/centor-recieved/", 0777); err != nil {
+	if err := os.MkdirAll("/tmp/centor-recieved/", 0777); err != nil {
 		return nil, err
 	}
 	filepath := path.Join("/tmp/centor-recieved/", path.Base(info.Name))

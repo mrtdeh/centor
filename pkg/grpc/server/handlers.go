@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 	"time"
 
@@ -26,17 +25,13 @@ func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filename string, d
 	filesize := reader.Size()
 	buffer := make([]byte, 1024)
 
+	// check if node_id is exist or not
 	if n, ok := nodesInfo[nodeId]; ok {
-		// fmt.Printf("send to : %+v\n", n)
 		conn, err := grpc_Dial(n.Address)
 		if err != nil {
 			return err
 		}
-		defer func() {
-			time.Sleep(time.Second)
-			conn.Close()
-			fmt.Println("closed connection")
-		}()
+		defer conn.Close()
 
 		client := proto.NewDiscoveryClient(conn)
 		stream, err := client.SendFile(context.Background())
@@ -44,21 +39,18 @@ func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filename string, d
 			return err
 		}
 
-		firstInfo := &proto.SendFileRequest{
+		// send the file information
+		err = stream.Send(&proto.SendFileRequest{
 			Data: &proto.SendFileRequest_Info{
 				Info: &proto.FileInfo{
 					Name: filename,
 					Size: uint32(filesize),
 				},
 			},
-		}
-		err = stream.Send(firstInfo)
+		})
 		if err != nil {
-			fmt.Println("debug send error : ", err)
 			return err
 		}
-
-		fmt.Println("debug send 1")
 
 		for {
 			n, err := reader.Read(buffer)
@@ -66,31 +58,35 @@ func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filename string, d
 				break
 			}
 			if err != nil {
-				log.Fatal("cannot read chunk to buffer: ", err)
+				return err
 			}
 
-			chunk := &proto.SendFileRequest{
+			// send the chunks of the file
+			err = stream.Send(&proto.SendFileRequest{
 				Data: &proto.SendFileRequest_ChunkData{
 					ChunkData: buffer[:n],
 				},
-			}
-			err = stream.Send(chunk)
+			})
 			if err != nil {
 				return err
 			}
-			fmt.Println("debug send 2")
 		}
 
-		endInfo := &proto.SendFileRequest{
+		// send the end of the file
+		err = stream.Send(&proto.SendFileRequest{
 			Data: &proto.SendFileRequest_End{
 				End: true,
 			},
-		}
-		err = stream.Send(endInfo)
+		})
 		if err != nil {
 			return err
 		}
-		fmt.Println("debug send 3")
+
+		// receive server response and error if any
+		_, err = stream.CloseAndRecv()
+		if err != nil && err != io.EOF {
+			return fmt.Errorf("Error receiving response: %v", err)
+		}
 
 	} else {
 		return fmt.Errorf("Node %s not found", nodeId)
