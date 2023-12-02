@@ -19,6 +19,7 @@ type CentorHandler interface {
 	GetClusterNodes() map[string]grpc_server.NodeInfo
 	WaitForReady(context.Context) error
 	SendFile(context.Context, string, string, []byte) error
+	Exec(context.Context, string, string) (string, error)
 }
 
 // Plugin interface

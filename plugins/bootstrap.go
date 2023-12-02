@@ -1,8 +1,9 @@
 package pluginManager
 
 import (
+	PluginKits "github.com/mrtdeh/centor/plugins/assets"
 	echo_plugin "github.com/mrtdeh/centor/plugins/echo"
-	PluginKits "github.com/mrtdeh/centor/plugins/kits"
+	exec_plugin "github.com/mrtdeh/centor/plugins/exec"
 	packageupdater_plugin "github.com/mrtdeh/centor/plugins/packageUpdater"
 )
 
@@ -22,6 +23,12 @@ func Bootstrap(cnf Config) error {
 		pms.AddPlugin(&packageupdater_plugin.PluginProvider{
 			PluginProps: PluginKits.PluginProps{
 				Name: "offline-update",
+			},
+		})
+
+		pms.AddPlugin(&exec_plugin.PluginProvider{
+			PluginProps: PluginKits.PluginProps{
+				Name: "exec-command",
 			},
 		})
 

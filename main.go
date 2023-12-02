@@ -10,7 +10,7 @@ import (
 	"github.com/mrtdeh/centor/pkg/config"
 	grpc_server "github.com/mrtdeh/centor/pkg/grpc/server"
 	pluginManager "github.com/mrtdeh/centor/plugins"
-	PluginKits "github.com/mrtdeh/centor/plugins/kits"
+	PluginKits "github.com/mrtdeh/centor/plugins/assets"
 	"github.com/mrtdeh/centor/routers"
 )
 

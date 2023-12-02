@@ -1,4 +1,4 @@
-package packageupdater_plugin
+package exec_plugin
 
 import (
 	"context"
@@ -26,7 +26,7 @@ func (p *PluginProvider) Init() error {
 	if !ok {
 		return fmt.Errorf("router is not a gin router")
 	}
-	r.POST("/send-file", sendFile)
+	r.POST("/exec", exec)
 
 	p.Router = r
 	return nil
@@ -48,23 +48,24 @@ func (p *PluginProvider) Run() {
 
 }
 
-type SendFileRequest struct {
-	Filename string `json:"filename"`
-	Data     string `json:"data"`
-	NodeId   string `json:"node_id"`
+type ExecRequest struct {
+	Command string `json:"command"`
+	NodeId  string `json:"node_id"`
 }
 
-func sendFile(c *gin.Context) {
-	var req SendFileRequest
+func exec(c *gin.Context) {
+	var req ExecRequest
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := h.SendFile(context.Background(), req.NodeId, req.Filename, []byte(req.Data))
+	res, err := h.Exec(context.Background(), req.NodeId, req.Command)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
+
+	fmt.Printf("Exec request on %s : %s\n", req.NodeId, res)
 	c.JSON(200, "ok")
 }

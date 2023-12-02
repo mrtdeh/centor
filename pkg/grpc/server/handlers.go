@@ -19,6 +19,30 @@ type FileHandler struct {
 	Data      []byte
 }
 
+func (h *GRPC_Handlers) Exec(ctx context.Context, nodeId, commnad string) (string, error) {
+
+	// check if node_id is exist or not
+	if n, ok := nodesInfo[nodeId]; ok {
+		conn, err := grpc_Dial(n.Address)
+		if err != nil {
+			return "", err
+		}
+		defer conn.Close()
+
+		client := proto.NewDiscoveryClient(conn)
+		res, err := client.Exec(context.Background(), &proto.ExecRequest{
+			Command: commnad,
+		})
+		if err != nil {
+			return "", err
+		}
+
+		return res.Output, nil
+	}
+
+	return "", nil
+}
+
 func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filename string, data []byte) error {
 
 	reader := bytes.NewReader(data)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	PluginKits "github.com/mrtdeh/centor/plugins/kits"
+	PluginKits "github.com/mrtdeh/centor/plugins/assets"
 )
 
 // ExamplePlugin1 is an example plugin implementing the Plugin interface
