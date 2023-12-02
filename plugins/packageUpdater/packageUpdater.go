@@ -3,7 +3,11 @@ package packageupdater_plugin
 import (
 	"context"
 	"fmt"
+	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path"
 
 	"github.com/gin-gonic/gin"
 	PluginKits "github.com/mrtdeh/centor/plugins/assets"
@@ -49,9 +53,10 @@ func (p *PluginProvider) Run() {
 }
 
 type SendFileRequest struct {
-	Filename string `json:"filename"`
-	Data     string `json:"data"`
-	NodeId   string `json:"node_id"`
+	Filename    string                `json:"filename"`
+	Data        string                `json:"data"`
+	NodeId      string                `json:"node_id"`
+	PackageFile *multipart.FileHeader `form:"deb" json:"-"`
 }
 
 func sendFile(c *gin.Context) {
@@ -61,10 +66,44 @@ func sendFile(c *gin.Context) {
 		return
 	}
 
+	var filename string
+	contentType := c.GetHeader("Content-Type")
+	if contentType != "application/json" { // if data is json
+
+		// save uploaded file
+		filename += req.PackageFile.Filename
+		err := c.SaveUploadedFile(req.PackageFile, filename)
+		if err != nil {
+			log.Println("error in save file : ", err.Error())
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		data, _ := os.ReadFile(filename)
+		req.Data = string(data)
+		req.Filename = path.Base(filename)
+		req.NodeId = c.PostForm("node_id")
+	}
+
 	err := h.SendFile(context.Background(), req.NodeId, req.Filename, []byte(req.Data))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
+
+	cmd := "dpkg -i /tmp/centor-recieved/" + req.Filename
+	installRes, err := h.Exec(context.Background(), req.NodeId, cmd)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	cmd = "rm /tmp/centor-recieved/" + req.Filename
+	_, err = h.Exec(context.Background(), req.NodeId, cmd)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Printf("Exec request on %s : \n%s\n", req.NodeId, installRes)
 	c.JSON(200, "ok")
 }

@@ -2,13 +2,18 @@ package grpc_server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/mrtdeh/centor/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
+	goproto "google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func (a *agent) checkParent() {
@@ -131,4 +136,14 @@ func grpc_Connect(ctx context.Context, a *agent) error {
 		fmt.Printf("Conenct Back from parent - ID=%s\n", pid)
 	}
 
+}
+
+func ConvertInterfaceToAny(v interface{}) (*any.Any, error) {
+	anyValue := &any.Any{}
+	bytes, _ := json.Marshal(v)
+	bytesValue := &wrappers.BytesValue{
+		Value: bytes,
+	}
+	err := anypb.MarshalFrom(anyValue, bytesValue, goproto.MarshalOptions{})
+	return anyValue, err
 }

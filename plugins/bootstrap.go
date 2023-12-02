@@ -3,8 +3,8 @@ package pluginManager
 import (
 	PluginKits "github.com/mrtdeh/centor/plugins/assets"
 	echo_plugin "github.com/mrtdeh/centor/plugins/echo"
-	exec_plugin "github.com/mrtdeh/centor/plugins/exec"
 	packageupdater_plugin "github.com/mrtdeh/centor/plugins/packageUpdater"
+	time_plugin "github.com/mrtdeh/centor/plugins/time"
 )
 
 type Config struct {
@@ -26,9 +26,9 @@ func Bootstrap(cnf Config) error {
 			},
 		})
 
-		pms.AddPlugin(&exec_plugin.PluginProvider{
+		pms.AddPlugin(&time_plugin.PluginProvider{
 			PluginProps: PluginKits.PluginProps{
-				Name: "exec-command",
+				Name: "time-manager",
 			},
 		})
 

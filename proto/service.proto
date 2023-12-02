@@ -1,4 +1,7 @@
+
 syntax = "proto3";
+import "google/protobuf/any.proto";
+
 
 package proto;
 option go_package = ".;proto";
@@ -92,6 +95,19 @@ message ExecResponse{
   string output = 1;
 }
 
+message EventRequest{
+  string name = 1;
+  repeated google.protobuf.Any params = 2;
+}
+// message Any{
+//  oneof Data{
+//   string str = 1;
+//   int32 int = 2;
+//   float float = 3;
+//   bool bool = 4;
+//  }
+// }
+
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
   rpc Connect(stream ConnectMessage) returns (stream ConnectBackMessage); // child -> parent
@@ -99,6 +115,7 @@ service Discovery {
   rpc Call(CallRequest) returns (CallResponse);
 
   rpc SendFile(stream SendFileRequest) returns (SendFileReponse);
+  rpc FireEvent(EventRequest) returns (Close);
   rpc Exec(ExecRequest) returns (ExecResponse);
 
   rpc Change(ChangeRequest) returns (Close);

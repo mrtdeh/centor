@@ -20,6 +20,7 @@ type CentorHandler interface {
 	WaitForReady(context.Context) error
 	SendFile(context.Context, string, string, []byte) error
 	Exec(context.Context, string, string) (string, error)
+	FireEvent(context.Context, string, string, ...any) error
 }
 
 // Plugin interface

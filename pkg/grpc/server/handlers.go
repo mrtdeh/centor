@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mrtdeh/centor/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 type GRPC_Handlers struct{}
@@ -17,6 +18,36 @@ type FileHandler struct {
 	Name      string
 	Extension string
 	Data      []byte
+}
+
+func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, params ...any) error {
+	protoParams := []*anypb.Any{}
+	for _, p := range params {
+		anyValue, err := ConvertInterfaceToAny(p)
+		if err != nil {
+			return err
+		}
+		protoParams = append(protoParams, anyValue)
+	}
+	// check if node_id is exist or not
+	if n, ok := nodesInfo[nodeId]; ok {
+		conn, err := grpc_Dial(n.Address)
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+
+		client := proto.NewDiscoveryClient(conn)
+		_, err = client.FireEvent(context.Background(), &proto.EventRequest{
+			Name:   event,
+			Params: protoParams,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	return nil
 }
 
 func (h *GRPC_Handlers) Exec(ctx context.Context, nodeId, commnad string) (string, error) {

@@ -1,14 +1,17 @@
-package exec_plugin
+package time_plugin
 
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mrtdeh/centor/pkg/event"
 	PluginKits "github.com/mrtdeh/centor/plugins/assets"
 )
 
+// ExamplePlugin1 is an example plugin implementing the Plugin interface
 type PluginProvider struct {
 	PluginKits.PluginProps
 }
@@ -21,51 +24,57 @@ func (p *PluginProvider) SetRouter(r http.Handler) {
 	p.Router = r
 }
 
+var h PluginKits.CentorHandler
+
 func (p *PluginProvider) Init() error {
+	h = p.Handler
+
 	r, ok := p.Router.(*gin.Engine)
 	if !ok {
 		return fmt.Errorf("router is not a gin router")
 	}
-	r.POST("/exec", exec)
+	r.POST("/update-time", updateTimeRequest)
 
 	p.Router = r
+
+	fmt.Println("debug time 1")
+
+	err := event.Bus.Subscribe("sync-time", syncTime)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("debug time 2")
+
 	return nil
-
 }
-
-var h PluginKits.CentorHandler
 
 // Run method for ExamplePlugin1
 func (p *PluginProvider) Run() {
 	fmt.Printf("Plugin %s is running...\n", p.Name)
-	h = p.Handler
-
-	err := h.WaitForReady(context.Background())
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
+	select {}
 }
 
-type ExecRequest struct {
-	Command string `json:"command"`
-	NodeId  string `json:"node_id"`
+type UpdateTimeRequest struct {
+	NodeId     string `json:"node_id"`
+	MainNodeId string `json:"main_node_id"`
 }
 
-func exec(c *gin.Context) {
-	var req ExecRequest
+func updateTimeRequest(c *gin.Context) {
+	var req UpdateTimeRequest
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	res, err := h.Exec(context.Background(), req.NodeId, req.Command)
+	err := h.FireEvent(context.Background(), req.NodeId, "sync-time", req.MainNodeId)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	fmt.Printf("Exec request on %s : %s\n", req.NodeId, res)
 	c.JSON(200, "ok")
+}
+
+func syncTime(mainNode string) {
+	fmt.Println("try to sync time with server... : ", mainNode)
 }

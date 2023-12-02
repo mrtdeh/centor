@@ -27,6 +27,7 @@ type DiscoveryClient interface {
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error)
 	Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
 	SendFile(ctx context.Context, opts ...grpc.CallOption) (Discovery_SendFileClient, error)
+	FireEvent(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*Close, error)
 	Exec(ctx context.Context, in *ExecRequest, opts ...grpc.CallOption) (*ExecResponse, error)
 	Change(ctx context.Context, in *ChangeRequest, opts ...grpc.CallOption) (*Close, error)
 	Notice(ctx context.Context, in *NoticeRequest, opts ...grpc.CallOption) (*Close, error)
@@ -132,6 +133,15 @@ func (x *discoverySendFileClient) CloseAndRecv() (*SendFileReponse, error) {
 	return m, nil
 }
 
+func (c *discoveryClient) FireEvent(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*Close, error) {
+	out := new(Close)
+	err := c.cc.Invoke(ctx, "/proto.Discovery/FireEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *discoveryClient) Exec(ctx context.Context, in *ExecRequest, opts ...grpc.CallOption) (*ExecResponse, error) {
 	out := new(ExecResponse)
 	err := c.cc.Invoke(ctx, "/proto.Discovery/Exec", in, out, opts...)
@@ -168,6 +178,7 @@ type DiscoveryServer interface {
 	Ping(context.Context, *PingRequest) (*PongResponse, error)
 	Call(context.Context, *CallRequest) (*CallResponse, error)
 	SendFile(Discovery_SendFileServer) error
+	FireEvent(context.Context, *EventRequest) (*Close, error)
 	Exec(context.Context, *ExecRequest) (*ExecResponse, error)
 	Change(context.Context, *ChangeRequest) (*Close, error)
 	Notice(context.Context, *NoticeRequest) (*Close, error)
@@ -191,6 +202,9 @@ func (UnimplementedDiscoveryServer) Call(context.Context, *CallRequest) (*CallRe
 }
 func (UnimplementedDiscoveryServer) SendFile(Discovery_SendFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method SendFile not implemented")
+}
+func (UnimplementedDiscoveryServer) FireEvent(context.Context, *EventRequest) (*Close, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FireEvent not implemented")
 }
 func (UnimplementedDiscoveryServer) Exec(context.Context, *ExecRequest) (*ExecResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Exec not implemented")
@@ -319,6 +333,24 @@ func (x *discoverySendFileServer) Recv() (*SendFileRequest, error) {
 	return m, nil
 }
 
+func _Discovery_FireEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DiscoveryServer).FireEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Discovery/FireEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DiscoveryServer).FireEvent(ctx, req.(*EventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Discovery_Exec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ExecRequest)
 	if err := dec(in); err != nil {
@@ -391,6 +423,10 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Call",
 			Handler:    _Discovery_Call_Handler,
+		},
+		{
+			MethodName: "FireEvent",
+			Handler:    _Discovery_FireEvent_Handler,
 		},
 		{
 			MethodName: "Exec",

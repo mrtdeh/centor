@@ -2,18 +2,22 @@ package grpc_server
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
-	"strings"
 
 	"github.com/mrtdeh/centor/proto"
 )
 
 func (s *agent) Exec(ctx context.Context, req *proto.ExecRequest) (*proto.ExecResponse, error) {
-	cmds := strings.Split(req.Command, " ")
-	cmd := exec.Command(cmds[0], cmds[1:]...)
-	out, err := cmd.Output()
-	if err != nil {
-		return nil, err
+	fmt.Println("command : ", req.Command)
+	cmd := exec.Command("sh", "-c", req.Command)
+	out, err := cmd.CombinedOutput()
+	res := &proto.ExecResponse{
+		Output: string(out),
 	}
-	return &proto.ExecResponse{Output: string(out)}, nil
+	if err != nil {
+
+		return res, err
+	}
+	return res, nil
 }
