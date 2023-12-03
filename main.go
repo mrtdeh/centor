@@ -55,7 +55,7 @@ func main() {
 			Port:   9090,
 			Router: router,
 		}
-		log.Printf("initil api server an address %s:%d\n", httpServer.Host, httpServer.Port)
+		fmt.Printf("initil api server an address %s:%d\n", httpServer.Host, httpServer.Port)
 
 		go func() {
 			log.Fatal(httpServer.Serve())

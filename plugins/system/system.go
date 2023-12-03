@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -42,7 +41,7 @@ func (p *PluginProvider) Init() error {
 
 	err := event.Bus.Subscribe("system-info", updateSystemsInfoEvent)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	return nil
@@ -51,6 +50,9 @@ func (p *PluginProvider) Init() error {
 // Run method for ExamplePlugin1
 func (p *PluginProvider) Run() {
 	fmt.Printf("Plugin %s is running...\n", p.Name)
+
+	h.WaitForReady(context.Background())
+
 	i := 10
 	for {
 

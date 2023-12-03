@@ -3,7 +3,6 @@ package timeSyncer_plugin
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -39,7 +38,7 @@ func (p *PluginProvider) Init() error {
 
 	err := event.Bus.Subscribe("sync-time", syncTime)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	return nil

@@ -2,7 +2,6 @@ package grpc_server
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mrtdeh/centor/proto"
 )
@@ -84,7 +83,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 
 		// wait for error
 		case err := <-errCh:
-			log.Println("conenct error : ", err.Error())
+			fmt.Println("conenct error : ", err.Error())
 			if joined {
 				// leave child from joined server
 				leaveChild(a, c)
@@ -92,7 +91,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 				// send change for remove client to leader
 				err := a.syncAgentChange(&c.agent, ChangeActionRemove)
 				if err != nil {
-					log.Fatalf("error in sync change : %s", err.Error())
+					return fmt.Errorf("error in sync change : %s", err.Error())
 				}
 			}
 			return err

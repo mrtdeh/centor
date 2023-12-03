@@ -43,7 +43,6 @@ func (a *agent) applyChange(id string, ni NodeInfo, action int32) error {
 			return err
 		}
 
-		fmt.Println("sending change to child : ", child.id)
 	}
 
 	return nil
