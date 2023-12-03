@@ -21,6 +21,8 @@ type CentorHandler interface {
 	SendFile(context.Context, string, string, []byte) error
 	Exec(context.Context, string, string) (string, error)
 	FireEvent(context.Context, string, string, ...any) error
+	GetParentId() string
+	GetMyId() string
 }
 
 // Plugin interface

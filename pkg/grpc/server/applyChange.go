@@ -29,12 +29,9 @@ func (a *agent) applyChange(id string, ni NodeInfo, action int32) error {
 		return err
 	}
 	for _, child := range a.childs {
-		// ignore childs that are leader
-		if child.isLeader {
-			continue
-		}
+
 		// notice to childs
-		child.proto.Notice(context.Background(), &proto.NoticeRequest{
+		_, err := child.proto.Notice(context.Background(), &proto.NoticeRequest{
 			Notice: &proto.NoticeRequest_NodesChange{
 				NodesChange: &proto.NodesChange{
 					Id:   a.id,
@@ -42,6 +39,11 @@ func (a *agent) applyChange(id string, ni NodeInfo, action int32) error {
 				},
 			},
 		})
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("sending change to child : ", child.id)
 	}
 
 	return nil

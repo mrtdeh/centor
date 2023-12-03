@@ -20,6 +20,17 @@ type FileHandler struct {
 	Data      []byte
 }
 
+func (h *GRPC_Handlers) GetMyId() string {
+	return a.id
+}
+
+func (h *GRPC_Handlers) GetParentId() string {
+	if a.parent != nil {
+		return a.parent.id
+	}
+	return ""
+}
+
 func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, params ...any) error {
 	protoParams := []*anypb.Any{}
 	for _, p := range params {

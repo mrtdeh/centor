@@ -99,14 +99,7 @@ message EventRequest{
   string name = 1;
   repeated google.protobuf.Any params = 2;
 }
-// message Any{
-//  oneof Data{
-//   string str = 1;
-//   int32 int = 2;
-//   float float = 3;
-//   bool bool = 4;
-//  }
-// }
+
 
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);

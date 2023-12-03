@@ -9,9 +9,9 @@ import (
 
 func (a *agent) Notice(ctx context.Context, req *proto.NoticeRequest) (*proto.Close, error) {
 	c := &proto.Close{}
-	if a.isLeader {
-		return c, nil
-	}
+	// if a.isLeader {
+	// 	return c, nil
+	// }
 
 	if nch := req.GetNodesChange(); nch != nil {
 		// fmt.Println("New notice - change nodes")
