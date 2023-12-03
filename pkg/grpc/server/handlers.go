@@ -33,6 +33,8 @@ func (h *GRPC_Handlers) GetParentId() string {
 
 func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, params ...any) error {
 	protoParams := []*anypb.Any{}
+
+	//  convert params to protobuf anypb
 	for _, p := range params {
 		anyValue, err := ConvertInterfaceToAny(p)
 		if err != nil {
@@ -49,6 +51,8 @@ func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, par
 		defer conn.Close()
 
 		client := proto.NewDiscoveryClient(conn)
+
+		// send event to server
 		_, err = client.FireEvent(context.Background(), &proto.EventRequest{
 			Name:   event,
 			Params: protoParams,
@@ -72,6 +76,8 @@ func (h *GRPC_Handlers) Exec(ctx context.Context, nodeId, commnad string) (strin
 		defer conn.Close()
 
 		client := proto.NewDiscoveryClient(conn)
+
+		// run command on the connected server
 		res, err := client.Exec(context.Background(), &proto.ExecRequest{
 			Command: commnad,
 		})
@@ -176,6 +182,7 @@ func (h *GRPC_Handlers) WaitForReady(ctx context.Context) error {
 	}
 }
 
+// Todo: this function should be removed
 func (h *GRPC_Handlers) Call(ctx context.Context) (string, error) {
 
 	res, err := a.Call(ctx, &proto.CallRequest{
@@ -187,7 +194,7 @@ func (h *GRPC_Handlers) Call(ctx context.Context) (string, error) {
 	return strings.Join(res.Tags, " ,"), nil
 }
 
-// GetClusterNodes returns a map of all the nodes in the cluster
+// returns a map of all the nodes in the cluster
 func (h *GRPC_Handlers) GetClusterNodes() map[string]NodeInfo {
 	return nodesInfo
 }
