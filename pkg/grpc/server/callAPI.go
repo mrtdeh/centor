@@ -19,7 +19,6 @@ type APIResponse struct {
 }
 
 func (s *agent) CallAPI(ctx context.Context, req *proto.APIRequest) (*proto.APIResponse, error) {
-
 	res, err := makeInternalRequest(req.Method, req.Addr, req.Body)
 	if err != nil {
 		return &proto.APIResponse{
