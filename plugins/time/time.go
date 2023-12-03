@@ -37,13 +37,10 @@ func (p *PluginProvider) Init() error {
 
 	p.Router = r
 
-	fmt.Println("debug time 1")
-
 	err := event.Bus.Subscribe("sync-time", syncTime)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("debug time 2")
 
 	return nil
 }
@@ -51,7 +48,6 @@ func (p *PluginProvider) Init() error {
 // Run method for ExamplePlugin1
 func (p *PluginProvider) Run() {
 	fmt.Printf("Plugin %s is running...\n", p.Name)
-	select {}
 }
 
 type UpdateTimeRequest struct {
