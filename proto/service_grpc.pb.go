@@ -26,6 +26,7 @@ type DiscoveryClient interface {
 	Connect(ctx context.Context, opts ...grpc.CallOption) (Discovery_ConnectClient, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error)
 	Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
+	CallAPI(ctx context.Context, in *APIRequest, opts ...grpc.CallOption) (*APIResponse, error)
 	SendFile(ctx context.Context, opts ...grpc.CallOption) (Discovery_SendFileClient, error)
 	FireEvent(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*Close, error)
 	Exec(ctx context.Context, in *ExecRequest, opts ...grpc.CallOption) (*ExecResponse, error)
@@ -93,6 +94,15 @@ func (c *discoveryClient) Ping(ctx context.Context, in *PingRequest, opts ...grp
 func (c *discoveryClient) Call(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error) {
 	out := new(CallResponse)
 	err := c.cc.Invoke(ctx, "/proto.Discovery/Call", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *discoveryClient) CallAPI(ctx context.Context, in *APIRequest, opts ...grpc.CallOption) (*APIResponse, error) {
+	out := new(APIResponse)
+	err := c.cc.Invoke(ctx, "/proto.Discovery/CallAPI", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -177,6 +187,7 @@ type DiscoveryServer interface {
 	Connect(Discovery_ConnectServer) error
 	Ping(context.Context, *PingRequest) (*PongResponse, error)
 	Call(context.Context, *CallRequest) (*CallResponse, error)
+	CallAPI(context.Context, *APIRequest) (*APIResponse, error)
 	SendFile(Discovery_SendFileServer) error
 	FireEvent(context.Context, *EventRequest) (*Close, error)
 	Exec(context.Context, *ExecRequest) (*ExecResponse, error)
@@ -199,6 +210,9 @@ func (UnimplementedDiscoveryServer) Ping(context.Context, *PingRequest) (*PongRe
 }
 func (UnimplementedDiscoveryServer) Call(context.Context, *CallRequest) (*CallResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
+}
+func (UnimplementedDiscoveryServer) CallAPI(context.Context, *APIRequest) (*APIResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CallAPI not implemented")
 }
 func (UnimplementedDiscoveryServer) SendFile(Discovery_SendFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method SendFile not implemented")
@@ -303,6 +317,24 @@ func _Discovery_Call_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DiscoveryServer).Call(ctx, req.(*CallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Discovery_CallAPI_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(APIRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DiscoveryServer).CallAPI(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Discovery/CallAPI",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DiscoveryServer).CallAPI(ctx, req.(*APIRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -423,6 +455,10 @@ var Discovery_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Call",
 			Handler:    _Discovery_Call_Handler,
+		},
+		{
+			MethodName: "CallAPI",
+			Handler:    _Discovery_CallAPI_Handler,
 		},
 		{
 			MethodName: "FireEvent",

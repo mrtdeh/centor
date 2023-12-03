@@ -100,6 +100,22 @@ message EventRequest{
   repeated google.protobuf.Any params = 2;
 }
 
+message APIRequest{
+  string id = 1;
+  string method = 2;
+  string body = 3;
+  string addr = 4;
+    
+}
+message APIResponse{
+  string id = 1;
+  bytes body = 2;
+  string erorr = 3;
+  int32 status = 4;
+  string host = 5;
+}
+
+
 
 service Discovery {
   rpc GetInfo(EmptyRequest) returns (InfoResponse);
@@ -107,6 +123,7 @@ service Discovery {
   rpc Ping(PingRequest) returns (PongResponse);
   rpc Call(CallRequest) returns (CallResponse);
 
+  rpc CallAPI(APIRequest) returns (APIResponse);
   rpc SendFile(stream SendFileRequest) returns (SendFileReponse);
   rpc FireEvent(EventRequest) returns (Close);
   rpc Exec(ExecRequest) returns (ExecResponse);
