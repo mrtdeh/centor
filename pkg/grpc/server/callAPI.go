@@ -26,7 +26,7 @@ func (s *agent) CallAPI(ctx context.Context, req *proto.APIRequest) (*proto.APIR
 		}, err
 	}
 	return &proto.APIResponse{
-		Body:   res.Body,
+		Body:   string(res.Body),
 		Erorr:  res.Error,
 		Status: int32(res.StatusCode),
 	}, nil

@@ -109,7 +109,7 @@ message APIRequest{
 }
 message APIResponse{
   string id = 1;
-  bytes body = 2;
+  string body = 2;
   string erorr = 3;
   int32 status = 4;
   string host = 5;

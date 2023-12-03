@@ -21,6 +21,7 @@ type CentorHandler interface {
 	SendFile(context.Context, string, string, []byte) error
 	Exec(context.Context, string, string) (string, error)
 	FireEvent(context.Context, string, string, ...any) error
+	CallAPI(context.Context, string, string, string, string) (*map[string]interface{}, error)
 	GetParentId() string
 	GetMyId() string
 }

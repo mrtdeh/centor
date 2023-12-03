@@ -31,6 +31,36 @@ func (h *GRPC_Handlers) GetParentId() string {
 	return ""
 }
 
+func (h *GRPC_Handlers) CallAPI(ctx context.Context, nodeId, method, addr, body string) (*map[string]interface{}, error) {
+	if n, ok := nodesInfo[nodeId]; ok {
+		conn, err := grpc_Dial(n.Address)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+
+		client := proto.NewDiscoveryClient(conn)
+
+		// send event to server
+		res, err := client.CallAPI(ctx, &proto.APIRequest{
+			Method: method,
+			Body:   body,
+			Addr:   addr,
+		})
+		if err != nil {
+			return nil, err
+		}
+		var result = &map[string]interface{}{
+			"body":  res.Body,
+			"error": res.Erorr,
+		}
+
+		return result, nil
+	}
+
+	return nil, fmt.Errorf("node id %s not found", nodeId)
+}
+
 func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, params ...any) error {
 	protoParams := []*anypb.Any{}
 
@@ -53,7 +83,7 @@ func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, par
 		client := proto.NewDiscoveryClient(conn)
 
 		// send event to server
-		_, err = client.FireEvent(context.Background(), &proto.EventRequest{
+		_, err = client.FireEvent(ctx, &proto.EventRequest{
 			Name:   event,
 			Params: protoParams,
 		})
