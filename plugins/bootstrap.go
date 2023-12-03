@@ -3,8 +3,8 @@ package pluginManager
 import (
 	PluginKits "github.com/mrtdeh/centor/plugins/assets"
 	echo_plugin "github.com/mrtdeh/centor/plugins/echo"
-	packageupdater_plugin "github.com/mrtdeh/centor/plugins/packageUpdater"
-	time_plugin "github.com/mrtdeh/centor/plugins/time"
+	installer_plugin "github.com/mrtdeh/centor/plugins/installer"
+	timeSyncer_plugin "github.com/mrtdeh/centor/plugins/time_syncer"
 )
 
 type Config struct {
@@ -20,15 +20,15 @@ func Bootstrap(cnf Config) error {
 			},
 		})
 
-		pms.AddPlugin(&packageupdater_plugin.PluginProvider{
+		pms.AddPlugin(&installer_plugin.PluginProvider{
 			PluginProps: PluginKits.PluginProps{
-				Name: "offline-update",
+				Name: "installer",
 			},
 		})
 
-		pms.AddPlugin(&time_plugin.PluginProvider{
+		pms.AddPlugin(&timeSyncer_plugin.PluginProvider{
 			PluginProps: PluginKits.PluginProps{
-				Name: "time-manager",
+				Name: "time-syncer",
 			},
 		})
 

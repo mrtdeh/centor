@@ -1,4 +1,4 @@
-package packageupdater_plugin
+package installer_plugin
 
 import (
 	"context"

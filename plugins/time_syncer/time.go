@@ -1,4 +1,4 @@
-package time_plugin
+package timeSyncer_plugin
 
 import (
 	"context"
