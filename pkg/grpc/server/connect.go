@@ -13,7 +13,7 @@ const (
 )
 
 func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
-	var done = make(chan bool, 1)
+	var connected = make(chan bool, 1)
 	var joined bool
 	var c *child
 	var resCh = make(chan *proto.ConnectMessage, 1)
@@ -52,28 +52,31 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 			// store client connection
 			err := addChild(a, c) // add child
 			if err != nil {
-				errCh <- err
+				return err
 			}
 			joined = true
 
+			defer func() {
+				leaveChild(a, c)
+			}()
 			// send back agent id to connected client
 			err = stream.Send(&proto.ConnectBackMessage{Id: a.id})
 			if err != nil {
-				errCh <- err
+				return err
 			}
 
 			// Dial back to joined server
 			go func() {
-				err := a.CreateChildStream(c, done)
+				err := a.CreateChildStream(c, connected)
 				if err != nil {
-					errCh <- err
+					errCh <- fmt.Errorf("error in create child stream : %s", err.Error())
 				}
 			}()
 
 			// Send child status to leader
 			go func() {
 				// wait for child to connect done
-				<-done
+				<-connected
 				// then, send changes to leader
 				err := a.syncAgentChange(&c.agent, ChangeActionAdd)
 				if err != nil {
@@ -86,7 +89,9 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 			fmt.Println("conenct error : ", err.Error())
 			if joined {
 				// leave child from joined server
-				leaveChild(a, c)
+				if err := leaveChild(a, c); err != nil {
+					return err
+				}
 
 				// send change for remove client to leader
 				err := a.syncAgentChange(&c.agent, ChangeActionRemove)
@@ -100,15 +105,19 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 	} // end for
 }
 
-func leaveChild(a *agent, c *child) {
+func leaveChild(a *agent, c *child) error {
 	if _, exist := a.childs[c.id]; !exist {
-		fmt.Printf("this join id is not exist for leaving : %s", c.id)
-		return
+		return fmt.Errorf("this join id is not exist for leaving : %s", c.id)
+	}
+	if a.childs[c.id].status == StatusDisconnected {
+		return nil
 	}
 	a.childs[c.id].status = StatusDisconnected
 	a.weight--
 	c.stream.err <- fmt.Errorf("client disconnected")
 	fmt.Printf("Disconnect client - ID=%s\n", c.id)
+
+	return nil
 }
 func addChild(a *agent, c *child) error {
 	if cc, exist := a.childs[c.id]; exist && cc.status == StatusConnected {

@@ -28,8 +28,12 @@ func (a *agent) applyChange(id string, ni NodeInfo, action int32) error {
 	if err != nil {
 		return err
 	}
-	for _, child := range a.childs {
 
+	for _, child := range a.childs {
+		if child.status != StatusConnected {
+			fmt.Println("apply change to child id : ", child.id, " status : ", child.status)
+			continue
+		}
 		// notice to childs
 		_, err := child.proto.Notice(context.Background(), &proto.NoticeRequest{
 			Notice: &proto.NoticeRequest_NodesChange{

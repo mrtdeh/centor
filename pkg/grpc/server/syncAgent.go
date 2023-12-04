@@ -46,6 +46,7 @@ func (a *agent) syncAgentChange(ca *agent, action int32) error {
 				})
 				if err != nil {
 					log.Printf("error in syncChangeToLeader : %s", err.Error())
+					time.Sleep(time.Second)
 					continue
 				}
 				// break out of for
