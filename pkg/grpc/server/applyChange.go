@@ -30,11 +30,16 @@ func (a *agent) applyChange(id string, ni NodeInfo, action int32) error {
 	}
 
 	for _, child := range a.childs {
+		// ignore disconnected child
 		if child.status != StatusConnected {
 			fmt.Println("apply change to child id : ", child.id, " status : ", child.status)
 			continue
 		}
-		// notice to childs
+		// ignore leader child
+		if child.isLeader {
+			continue
+		}
+		// notice to child
 		_, err := child.proto.Notice(context.Background(), &proto.NoticeRequest{
 			Notice: &proto.NoticeRequest_NodesChange{
 				NodesChange: &proto.NodesChange{
