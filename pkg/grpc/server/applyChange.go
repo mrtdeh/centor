@@ -20,12 +20,12 @@ func (a *agent) applyChange(ni NodeInfo, action int32) error {
 	}
 	switch action {
 	case ChangeActionAdd:
-		nodesInfo[id] = ni
+		cluster.UpdateNodes([]NodeInfo{ni})
 	case ChangeActionRemove:
-		delete(nodesInfo, id)
+		cluster.DeleteNode(id)
 	}
 
-	data, err := json.Marshal(nodesInfo)
+	data, err := json.Marshal(cluster.nodes)
 	if err != nil {
 		return err
 	}

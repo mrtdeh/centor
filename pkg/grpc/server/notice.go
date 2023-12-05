@@ -15,12 +15,13 @@ func (a *agent) Notice(ctx context.Context, req *proto.NoticeRequest) (*proto.Cl
 
 	if nch := req.GetNodesChange(); nch != nil {
 		// fmt.Println("New notice - change nodes")
-		var nodes map[string]NodeInfo
+		var nodes NodesInfoMap
 		err := json.Unmarshal([]byte(nch.Data), &nodes)
 		if err != nil {
 			return c, err
 		}
-		nodesInfo = nodes
+		// update the node info map
+		cluster.UpdateNodes(nodes.toArray())
 
 		if a.childs != nil {
 			for _, child := range a.childs {

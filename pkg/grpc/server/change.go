@@ -4,13 +4,72 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/mrtdeh/centor/proto"
 )
 
 var (
-	nodesInfo = map[string]NodeInfo{}
+	cluster *ClusterInfo
 )
+
+type (
+	NodeInfo struct {
+		Id         string `json:"id"`
+		Name       string `json:"name"`
+		Address    string `json:"address"`
+		Port       string `json:"port"`
+		IsServer   bool   `json:"is_server"`
+		IsLeader   bool   `json:"is_leader"`
+		IsPrimary  bool   `json:"is_primary"`
+		ParentId   string `json:"parent_id"`
+		DataCenter string `json:"data_center"`
+	}
+	NodesInfoMap map[string]NodeInfo
+	ClusterInfo  struct {
+		nodes NodesInfoMap
+		l     *sync.RWMutex
+	}
+)
+
+func (n *NodesInfoMap) toArray() (narr []NodeInfo) {
+	for _, v := range *n {
+		narr = append(narr, v)
+	}
+	return narr
+}
+
+func (c *ClusterInfo) DeleteNode(nodeId string) {
+	c.l.Lock()
+	defer c.l.Unlock()
+	delete(c.nodes, nodeId)
+}
+
+func (c *ClusterInfo) UpdateNodes(nodes []NodeInfo) {
+	c.l.Lock()
+	defer c.l.Unlock()
+	for _, node := range nodes {
+		cluster.nodes[node.Id] = node
+		fmt.Printf("add %s to nodes : %+v\n", node.Id, cluster.nodes)
+	}
+}
+
+func (c *ClusterInfo) GetNode(nodeId string) (*NodeInfo, error) {
+	c.l.RLock()
+	defer c.l.RUnlock()
+	if n, ok := cluster.nodes[nodeId]; ok {
+		fmt.Printf("read %s : %+v\n", nodeId, n)
+		return &n, nil
+	}
+	return nil, fmt.Errorf("node id not found in cluster nodes map")
+}
+
+func init() {
+	cluster = &ClusterInfo{
+		nodes: make(map[string]NodeInfo),
+		l:     &sync.RWMutex{},
+	}
+}
 
 func (a *agent) Change(ctx context.Context, req *proto.ChangeRequest) (*proto.Close, error) {
 	c := &proto.Close{}

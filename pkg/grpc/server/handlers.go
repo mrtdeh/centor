@@ -32,7 +32,7 @@ func (h *GRPC_Handlers) GetParentId() string {
 }
 
 func (h *GRPC_Handlers) CallAPI(ctx context.Context, nodeId, method, addr, body string) (*map[string]interface{}, error) {
-	if n, ok := nodesInfo[nodeId]; ok {
+	if n, err := cluster.GetNode(nodeId); err == nil {
 		conn, err := grpc_Dial(n.Address)
 		if err != nil {
 			return nil, err
@@ -73,7 +73,7 @@ func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, par
 		protoParams = append(protoParams, anyValue)
 	}
 	// check if node_id is exist or not
-	if n, ok := nodesInfo[nodeId]; ok {
+	if n, err := cluster.GetNode(nodeId); err == nil {
 		conn, err := grpc_Dial(n.Address)
 		if err != nil {
 			return err
@@ -98,7 +98,7 @@ func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, par
 func (h *GRPC_Handlers) Exec(ctx context.Context, nodeId, commnad string) (string, error) {
 
 	// check if node_id is exist or not
-	if n, ok := nodesInfo[nodeId]; ok {
+	if n, err := cluster.GetNode(nodeId); err == nil {
 		conn, err := grpc_Dial(n.Address)
 		if err != nil {
 			return "", err
@@ -128,7 +128,7 @@ func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filename string, d
 	buffer := make([]byte, 1024)
 
 	// check if node_id is exist or not
-	if n, ok := nodesInfo[nodeId]; ok {
+	if n, err := cluster.GetNode(nodeId); err == nil {
 		conn, err := grpc_Dial(n.Address)
 		if err != nil {
 			return err
@@ -226,5 +226,5 @@ func (h *GRPC_Handlers) Call(ctx context.Context) (string, error) {
 
 // returns a map of all the nodes in the cluster
 func (h *GRPC_Handlers) GetClusterNodes() map[string]NodeInfo {
-	return nodesInfo
+	return cluster.nodes
 }

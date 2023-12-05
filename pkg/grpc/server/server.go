@@ -53,14 +53,16 @@ func Start(cnf Config) error {
 	} else {
 		// if is a leader or there are no servers in the cluster
 		// add current node info to nodes info map
-		nodesInfo[a.id] = NodeInfo{
-			Id:         a.id,
-			Address:    a.addr,
-			IsServer:   a.isServer,
-			IsLeader:   a.isLeader,
-			IsPrimary:  a.isPrimary,
-			DataCenter: a.dc,
-		}
+		cluster.UpdateNodes([]NodeInfo{
+			{
+				Id:         a.id,
+				Address:    a.addr,
+				IsServer:   a.isServer,
+				IsLeader:   a.isLeader,
+				IsPrimary:  a.isPrimary,
+				DataCenter: a.dc,
+			},
+		})
 
 		if len(cnf.Primaries) > 0 {
 			connectToPrimary = true

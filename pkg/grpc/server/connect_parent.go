@@ -55,9 +55,9 @@ func (a *agent) ConnectToParent(cc connectConfig) error {
 		},
 	}
 	if a.isLeader {
-		if n, ok := nodesInfo[a.id]; ok {
+		if n, err := cluster.GetNode(a.id); err == nil {
 			n.ParentId = si.Id
-			nodesInfo[a.id] = n
+			cluster.UpdateNodes([]NodeInfo{*n})
 		}
 	}
 

@@ -38,15 +38,3 @@ type child struct {
 }
 
 // ===========================================
-
-type NodeInfo struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	Address    string `json:"address"`
-	Port       string `json:"port"`
-	IsServer   bool   `json:"is_server"`
-	IsLeader   bool   `json:"is_leader"`
-	IsPrimary  bool   `json:"is_primary"`
-	ParentId   string `json:"parent_id"`
-	DataCenter string `json:"data_center"`
-}
