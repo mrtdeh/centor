@@ -26,7 +26,7 @@ func (a *agent) syncAgentChange(ca *agent, action int32) error {
 	}
 	// if is leader then apply changes
 	if a.isLeader {
-		err := a.applyChange(ni.Id, ni, action)
+		err := a.applyChange(ni, action)
 		if err != nil {
 			return fmt.Errorf("error in applyChange : %s", err.Error())
 		}
