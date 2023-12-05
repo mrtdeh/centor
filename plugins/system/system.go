@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,11 +26,20 @@ func (p *PluginProvider) SetRouter(r http.Handler) {
 }
 
 var h PluginKits.CentorHandler
-var systemsInfo map[string]System
+
+var sysinfo system
+
+type system struct {
+	info map[string]System
+	l    *sync.RWMutex
+}
 
 func (p *PluginProvider) Init() error {
 	h = p.Handler
-	systemsInfo = make(map[string]System)
+	sysinfo = system{
+		info: make(map[string]System),
+		l:    &sync.RWMutex{},
+	}
 
 	r, ok := p.Router.(*gin.Engine)
 	if !ok {
@@ -85,9 +95,11 @@ type System struct {
 }
 
 func updateSystemsInfo(systems []System) error {
+	sysinfo.l.Lock()
 	for _, s := range systems {
-		systemsInfo[s.NodeId] = s
+		sysinfo.info[s.NodeId] = s
 	}
+	sysinfo.l.Unlock()
 
 	parentId := h.GetParentId()
 	if parentId != "" {
@@ -118,10 +130,12 @@ func updateSystemsInfoEvent(nodeId string, info string) {
 }
 
 func infoToArray() []System {
+	sysinfo.l.Lock()
 	var res = []System{}
-	for _, system := range systemsInfo {
+	for _, system := range sysinfo.info {
 		res = append(res, system)
 	}
+	sysinfo.l.Unlock()
 	return res
 }
 

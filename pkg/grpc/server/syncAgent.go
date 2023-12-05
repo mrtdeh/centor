@@ -10,6 +10,10 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
+const (
+	MaxApplyTries = 1024
+)
+
 func (a *agent) syncAgentChange(ca *agent, action int32) error {
 	ni := NodeInfo{
 		Id:         ca.id,
@@ -29,7 +33,13 @@ func (a *agent) syncAgentChange(ca *agent, action int32) error {
 	}
 	// and if also is not primary then send change to primary
 	if !a.isPrimary {
+		var try int
 		for {
+			if try >= MaxApplyTries {
+				return fmt.Errorf("max tries reached %d", MaxApplyTries)
+			}
+			try++
+
 			if a.parent != nil {
 				data, err := json.Marshal(ni)
 				if err != nil {
@@ -52,7 +62,7 @@ func (a *agent) syncAgentChange(ca *agent, action int32) error {
 				// break out of for
 				break
 			}
-			fmt.Println("retry to sync")
+			// fmt.Println("retry to sync")
 			time.Sleep(time.Millisecond * 100)
 		}
 	}
