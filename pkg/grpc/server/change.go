@@ -50,7 +50,6 @@ func (c *ClusterInfo) UpdateNodes(nodes []NodeInfo) {
 	defer c.l.Unlock()
 	for _, node := range nodes {
 		cluster.nodes[node.Id] = node
-		fmt.Printf("add %s to nodes : %+v\n", node.Id, cluster.nodes)
 	}
 }
 
@@ -58,7 +57,6 @@ func (c *ClusterInfo) GetNode(nodeId string) (*NodeInfo, error) {
 	c.l.RLock()
 	defer c.l.RUnlock()
 	if n, ok := cluster.nodes[nodeId]; ok {
-		fmt.Printf("read %s : %+v\n", nodeId, n)
 		return &n, nil
 	}
 	return nil, fmt.Errorf("node id not found in cluster nodes map")
