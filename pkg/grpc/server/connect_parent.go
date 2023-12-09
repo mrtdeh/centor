@@ -44,6 +44,7 @@ func (a *agent) ConnectToParent(cc connectConfig) error {
 	// create parent object
 	a.parent = &parent{
 		agent: agent{ // parent agent
+			addr:      si.Addr,
 			id:        si.Id,
 			isLeader:  si.IsLeader,
 			isPrimary: cc.ConnectToPrimary,

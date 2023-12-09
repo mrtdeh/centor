@@ -64,17 +64,8 @@ func (h *GRPC_Handlers) CallAPI(ctx context.Context, nodeId, method, addr, body 
 func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, params ...any) error {
 	protoParams := []*anypb.Any{}
 
-	//  convert params to protobuf anypb
-	for _, p := range params {
-		anyValue, err := ConvertInterfaceToAny(p)
-		if err != nil {
-			return err
-		}
-		protoParams = append(protoParams, anyValue)
-	}
-	// check if node_id is exist or not
-	if n, err := cluster.GetNode(nodeId); err == nil {
-		conn, err := grpc_Dial(n.Address)
+	var fire = func(addr string) error {
+		conn, err := grpc_Dial(addr)
 		if err != nil {
 			return err
 		}
@@ -86,13 +77,33 @@ func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, par
 		_, err = client.FireEvent(ctx, &proto.EventRequest{
 			Name:   event,
 			Params: protoParams,
+			From:   a.id,
 		})
 		if err != nil {
 			return err
 		}
 		return nil
 	}
-	return nil
+
+	//  convert params to protobuf anypb
+	for _, p := range params {
+		anyValue, err := ConvertInterfaceToAny(p)
+		if err != nil {
+			return err
+		}
+		protoParams = append(protoParams, anyValue)
+	}
+
+	// first check node id with parent id
+	if a.isLeader && a.parent != nil && a.parent.id == nodeId {
+		return fire(a.parent.addr)
+	}
+
+	// check if node id is exist in nodes or not
+	if n, err := cluster.GetNode(nodeId); err == nil {
+		return fire(n.Address)
+	}
+	return fmt.Errorf("node id %s is not exist", nodeId)
 }
 
 func (h *GRPC_Handlers) Exec(ctx context.Context, nodeId, commnad string) (string, error) {

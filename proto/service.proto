@@ -96,8 +96,9 @@ message ExecResponse{
 }
 
 message EventRequest{
-  string name = 1;
-  repeated google.protobuf.Any params = 2;
+  string from = 1;
+  string name = 2;
+  repeated google.protobuf.Any params = 3;
 }
 
 message APIRequest{
