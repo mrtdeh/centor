@@ -21,10 +21,12 @@ type FileHandler struct {
 }
 
 func (h *GRPC_Handlers) GetMyId() string {
+	h.WaitForReady(context.Background())
 	return a.id
 }
 
 func (h *GRPC_Handlers) GetParentId() string {
+	h.WaitForReady(context.Background())
 	if a.parent != nil {
 		return a.parent.id
 	}
