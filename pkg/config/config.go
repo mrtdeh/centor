@@ -34,6 +34,7 @@ type Service struct {
 	Name string
 	Port uint
 }
+
 type Config struct {
 	Name               string    // id of the agent
 	DataCenter         string    // datacenter of the agent
@@ -45,6 +46,10 @@ type Config struct {
 	ServersAddr        string    // address of the servers in the cluster
 	PrimaryServersAddr string    // address of the primary servers in the cluster
 	Services           []Service // services in the cluster
+	Connect            string
+	SSL_ca             string
+	SSL_cert           string
+	SSL_key            string
 }
 
 var (
@@ -79,11 +84,23 @@ func LoadConfiguration() *Config {
 	if e := os.Getenv("DC"); e != "" {
 		cnf.DataCenter = e
 	}
+	if e := os.Getenv("CONNECT"); e != "" {
+		cnf.Connect = e
+	}
 	if e := os.Getenv("HOST"); e != "" {
 		cnf.Host = e
 	}
 	if e := os.Getenv("JOIN"); e != "" {
 		cnf.ServersAddr = e
+	}
+	if e := os.Getenv("SSL_CA"); e != "" {
+		cnf.SSL_ca = e
+	}
+	if e := os.Getenv("SSL_CERT"); e != "" {
+		cnf.SSL_cert = e
+	}
+	if e := os.Getenv("SSL_KEY"); e != "" {
+		cnf.SSL_key = e
 	}
 	if e := os.Getenv("PRIMARIES"); e != "" {
 		cnf.PrimaryServersAddr = e
@@ -101,13 +118,22 @@ func LoadConfiguration() *Config {
 	// load config from cli arguments
 	flag.BoolVar(&Verbose, "v", false, "")
 	flag.BoolVar(&WithAPI, "api", false, "")
+
 	flag.StringVar(&cnf.Name, "n", cnf.Name, "")
 	flag.StringVar(&cnf.DataCenter, "dc", cnf.DataCenter, "")
+
+	flag.StringVar(&cnf.SSL_ca, "ssl_ca", cnf.SSL_ca, "")
+	flag.StringVar(&cnf.SSL_cert, "ssl_cert", cnf.SSL_cert, "")
+	flag.StringVar(&cnf.SSL_key, "ssl_key", cnf.SSL_key, "")
+
 	flag.StringVar(&cnf.Host, "h", cnf.Host, "")
 	flag.StringVar(&cnf.AltHost, "ah", cnf.AltHost, "")
 	flag.UintVar(&cnf.Port, "p", cnf.Port, "")
-	flag.StringVar(&cnf.ServersAddr, "join", cnf.ServersAddr, "")
+
+	flag.StringVar(&cnf.Connect, "connect", cnf.Connect, "")
 	flag.StringVar(&cnf.PrimaryServersAddr, "primaries-addr", cnf.PrimaryServersAddr, "")
+	flag.StringVar(&cnf.ServersAddr, "join", cnf.ServersAddr, "")
+
 	flag.BoolVar(&cnf.IsServer, "server", cnf.IsServer, "")
 	flag.BoolVar(&cnf.IsLeader, "leader", cnf.IsLeader, "")
 	flag.Parse()

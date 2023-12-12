@@ -173,7 +173,10 @@ type TLSConfig struct {
 	SessionTimeout       string
 }
 type EnvoyConfig struct {
-	LogPath         string
+	EnvoyBinaryPath string
+
+	OutLogPath      string
+	AccessLogPath   string
 	ListenerAddress string
 	ListenerPort    uint
 	TLSConfig

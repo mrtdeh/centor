@@ -8,6 +8,7 @@ import (
 	"github.com/common-nighthawk/go-figure"
 	api_server "github.com/mrtdeh/centor/pkg/api"
 	"github.com/mrtdeh/centor/pkg/config"
+	"github.com/mrtdeh/centor/pkg/envoy"
 	grpc_server "github.com/mrtdeh/centor/pkg/grpc/server"
 	pluginManager "github.com/mrtdeh/centor/plugins"
 	PluginKits "github.com/mrtdeh/centor/plugins/assets"
@@ -60,6 +61,25 @@ func main() {
 		go func() {
 			log.Fatal(httpServer.Serve())
 		}()
+	}
+
+	if cnf.Connect != "" {
+		go func() {
+			log.Fatal(envoy.NewEnvoy(
+				envoy.EnvoyConfig{
+					ListenerPort: cnf.Port + 1,
+					EndpointPort: cnf.Port,
+					TLSConfig: envoy.TLSConfig{
+						Secure:         true,
+						CA:             "./pkg/envoy/testData/certs/ca.crt",
+						Cert:           "./pkg/envoy/testData/certs/server.crt",
+						Key:            "./pkg/envoy/testData/certs/server.key",
+						SessionTimeout: "6000s",
+					},
+				},
+			))
+		}()
+		log.Println("start envoy server at :", cnf.Port+1)
 	}
 
 	// start gRPC server

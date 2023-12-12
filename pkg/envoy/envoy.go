@@ -27,8 +27,11 @@ import (
 func NewEnvoy(cnf EnvoyConfig) error {
 	strConfig := DefaultConfig
 
-	if cnf.LogPath == "" {
-		cnf.LogPath = "/var/log/centor.log"
+	if cnf.AccessLogPath == "" {
+		cnf.AccessLogPath = "/var/log/centor-access.log"
+	}
+	if cnf.OutLogPath == "" {
+		cnf.OutLogPath = "/var/log/centor-envoy.log"
 	}
 	if cnf.ListenerAddress == "" {
 		cnf.ListenerAddress = "0.0.0.0"
@@ -51,7 +54,7 @@ func NewEnvoy(cnf EnvoyConfig) error {
 
 	strConfig = strings.ReplaceAll(strConfig, "{listener_address}", cnf.ListenerAddress)
 	strConfig = strings.ReplaceAll(strConfig, "{listener_port}", fmt.Sprintf("%d", cnf.ListenerPort))
-	strConfig = strings.ReplaceAll(strConfig, "{log_path}", cnf.LogPath)
+	strConfig = strings.ReplaceAll(strConfig, "{log_path}", cnf.AccessLogPath)
 	strConfig = strings.ReplaceAll(strConfig, "{session_timeout}", cnf.TLSConfig.SessionTimeout)
 	if cnf.TLSConfig.DisableSessionTicket {
 		strConfig = strings.ReplaceAll(strConfig, "{disable_session_ticket}", "true")
@@ -64,12 +67,34 @@ func NewEnvoy(cnf EnvoyConfig) error {
 	strConfig = strings.ReplaceAll(strConfig, "{endpoint_address}", cnf.EndpointAddress)
 	strConfig = strings.ReplaceAll(strConfig, "{endpoint_port}", fmt.Sprintf("%d", cnf.EndpointPort))
 
-	cmd := exec.Command("envoy", "--config-yaml", strConfig)
-	cmd.Stderr = os.Stdout
-	err := cmd.Run()
+	// find the envoy binary path
+	envoyBin, err := cnf.findBinary()
+	if err != nil {
+		return err
+	}
+	// envoy arguments
+	args := []string{"--config-yaml", strConfig}
+	// run the envoy process
+	cmd := exec.Command(envoyBin, args...)
+	if cnf.OutLogPath != "" {
+		file, err := os.OpenFile(cnf.OutLogPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		if err != nil {
+			return err
+		}
+		cmd.Stdout = file
+		cmd.Stderr = file
+	}
+	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	return nil
+}
+
+func (c *EnvoyConfig) findBinary() (string, error) {
+	if c.EnvoyBinaryPath != "" {
+		return c.EnvoyBinaryPath, nil
+	}
+	return exec.LookPath("envoy")
 }
