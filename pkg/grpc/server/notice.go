@@ -7,7 +7,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (a *agent) Notice(ctx context.Context, req *proto.NoticeRequest) (*proto.Close, error) {
+func (a *Agent) Notice(ctx context.Context, req *proto.NoticeRequest) (*proto.Close, error) {
 	c := &proto.Close{}
 	// if a.isLeader {
 	// 	return c, nil

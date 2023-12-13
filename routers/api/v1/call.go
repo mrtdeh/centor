@@ -7,7 +7,7 @@ import (
 )
 
 func Call(c *gin.Context) {
-	h := getServerAPI()
+	// h := getServerAPI()
 	tags, err := h.Call(context.Background())
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})

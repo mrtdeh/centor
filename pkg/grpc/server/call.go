@@ -6,7 +6,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (a *agent) Call(ctx context.Context, req *proto.CallRequest) (*proto.CallResponse, error) {
+func (a *Agent) Call(ctx context.Context, req *proto.CallRequest) (*proto.CallResponse, error) {
 	var tags []string
 	tags = append(tags, a.id)
 

@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func (a *agent) checkParent() {
+func (a *Agent) checkParent() {
 	for {
 		status := a.parent.conn.GetState()
 		if status != connectivity.Ready {
@@ -27,18 +27,18 @@ func (a *agent) checkParent() {
 	}
 }
 
-func (a *agent) parentErr() <-chan error {
+func (a *Agent) parentErr() <-chan error {
 	return a.parent.stream.err
 }
 
 // =======================================
 
-func (c *child) childErr() <-chan error {
+func (c *Child) childErr() <-chan error {
 	return c.stream.err
 }
 
 // ======================================
-func (a *agent) waitForReady() {
+func (a *Agent) waitForReady() {
 	for {
 		if a.isReady {
 			return
@@ -47,15 +47,15 @@ func (a *agent) waitForReady() {
 	}
 }
 
-func (a *agent) ready() {
+func (a *Agent) ready() {
 	a.isReady = true
 }
 
-func (a *agent) unReady() {
+func (a *Agent) unReady() {
 	a.isReady = false
 }
 
-func (a *agent) CloseChild(c *child) error {
+func (a *Agent) CloseChild(c *Child) error {
 	if _, ok := a.childs[c.id]; !ok {
 		return fmt.Errorf("child %s is not exist", c.id)
 	}
@@ -98,7 +98,7 @@ func grpc_Dial(addr string) (*grpc.ClientConn, error) {
 	return conn, nil
 }
 
-func grpc_Connect(ctx context.Context, a *agent) error {
+func grpc_Connect(ctx context.Context, a *Agent) error {
 	stream, err := a.parent.proto.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("error in create connect stream : %s", err.Error())

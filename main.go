@@ -42,7 +42,7 @@ func main() {
 	err := pluginManager.Bootstrap(pluginManager.Config{
 		Config: PluginKits.Config{
 			CoreHandler: &grpc_server.CoreHandlers{
-				Agent: grpc_server.GetAgentInstance(),
+				Agent: grpc_server.App,
 			},
 			RouterAPI: router,
 		},

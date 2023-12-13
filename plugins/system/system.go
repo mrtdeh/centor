@@ -98,7 +98,6 @@ func updateSystemsInfo(systems []System) error {
 	sysinfo.l.Lock()
 	for _, s := range systems {
 		sysinfo.info[s.NodeId] = s
-		fmt.Println("update info : ", sysinfo.info)
 	}
 	sysinfo.l.Unlock()
 

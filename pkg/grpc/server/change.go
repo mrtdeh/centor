@@ -69,7 +69,7 @@ func init() {
 	}
 }
 
-func (a *agent) Change(ctx context.Context, req *proto.ChangeRequest) (*proto.Close, error) {
+func (a *Agent) Change(ctx context.Context, req *proto.ChangeRequest) (*proto.Close, error) {
 	c := &proto.Close{}
 	if !a.isLeader {
 		return c, fmt.Errorf("you must send change request to primary not here")
@@ -84,14 +84,14 @@ func (a *agent) Change(ctx context.Context, req *proto.ChangeRequest) (*proto.Cl
 			return c, err
 		}
 
-		err = a.syncAgentChange(&agent{
+		err = a.syncAgentChange(&Agent{
 			id:        ni.Id,
 			addr:      ni.Address,
 			isServer:  ni.IsServer,
 			isLeader:  ni.IsLeader,
 			isPrimary: ni.IsPrimary,
 			dc:        ni.DataCenter,
-			parent:    &parent{agent: agent{id: ni.ParentId}},
+			parent:    &Parent{Agent: Agent{id: ni.ParentId}},
 		}, nch.Action)
 		if err != nil {
 			return c, err

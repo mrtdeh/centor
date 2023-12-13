@@ -7,7 +7,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (s *agent) Exec(ctx context.Context, req *proto.ExecRequest) (*proto.ExecResponse, error) {
+func (s *Agent) Exec(ctx context.Context, req *proto.ExecRequest) (*proto.ExecResponse, error) {
 	cmd := exec.Command("sh", "-c", req.Command)
 	out, err := cmd.CombinedOutput()
 	res := &proto.ExecResponse{

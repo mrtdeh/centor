@@ -6,6 +6,6 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (s *agent) Ping(context.Context, *proto.PingRequest) (*proto.PongResponse, error) {
+func (s *Agent) Ping(context.Context, *proto.PingRequest) (*proto.PongResponse, error) {
 	return &proto.PongResponse{}, nil
 }

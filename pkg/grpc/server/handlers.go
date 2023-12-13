@@ -13,7 +13,7 @@ import (
 )
 
 type CoreHandlers struct {
-	Agent *agent
+	Agent *Agent
 }
 
 type FileHandler struct {
@@ -21,6 +21,14 @@ type FileHandler struct {
 	Extension string
 	Data      []byte
 }
+
+// func (h *CoreHandlers) GetApp() *grpc_server.Agent {
+// 	for {
+// 		if h.Agent != nil {
+// 			return h.Agent
+// 		}
+// 	}
+// }
 
 // wait for current agent is running completely
 func (h *CoreHandlers) WaitForReady(ctx context.Context) error {
@@ -115,7 +123,7 @@ func (h *CoreHandlers) FireEvent(ctx context.Context, nodeId, event string, para
 
 	// first check node id with parent id
 	if h.Agent.isLeader && h.Agent.parent != nil && h.Agent.parent.id == nodeId {
-		return fire(a.parent.addr)
+		return fire(App.parent.addr)
 	}
 
 	// check if node id is exist in nodes or not

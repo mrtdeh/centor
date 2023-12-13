@@ -6,7 +6,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (s *agent) GetInfo(context.Context, *proto.EmptyRequest) (*proto.InfoResponse, error) {
+func (s *Agent) GetInfo(context.Context, *proto.EmptyRequest) (*proto.InfoResponse, error) {
 	return &proto.InfoResponse{
 		Id:       s.id,
 		IsLeader: s.isLeader,

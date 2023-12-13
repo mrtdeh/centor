@@ -18,7 +18,7 @@ type APIResponse struct {
 	StatusCode int
 }
 
-func (s *agent) CallAPI(ctx context.Context, req *proto.APIRequest) (*proto.APIResponse, error) {
+func (s *Agent) CallAPI(ctx context.Context, req *proto.APIRequest) (*proto.APIResponse, error) {
 	res, err := makeInternalRequest(req.Method, req.Addr, req.Body)
 	if err != nil {
 		return &proto.APIResponse{

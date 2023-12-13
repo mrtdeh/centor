@@ -7,7 +7,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (a *agent) CreateChildStream(c *child, done chan bool) error {
+func (a *Agent) CreateChildStream(c *Child, done chan bool) error {
 	// dial to child listener
 	conn, err := grpc_Dial(c.addr)
 	if err != nil {

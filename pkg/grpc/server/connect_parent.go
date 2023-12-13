@@ -14,7 +14,7 @@ type connectConfig struct {
 	OnFinishChan     chan struct{}
 }
 
-func (a *agent) ConnectToParent(cc connectConfig) error {
+func (a *Agent) ConnectToParent(cc connectConfig) error {
 	if len(cc.ServersAddresses) == 0 {
 		return nil
 	}
@@ -42,8 +42,8 @@ func (a *agent) ConnectToParent(cc connectConfig) error {
 	defer conn.Close()
 
 	// create parent object
-	a.parent = &parent{
-		agent: agent{ // parent agent
+	a.parent = &Parent{
+		Agent: Agent{ // parent agent
 			addr:      si.Addr,
 			id:        si.Id,
 			isLeader:  si.IsLeader,

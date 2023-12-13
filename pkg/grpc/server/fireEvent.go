@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func (s *agent) FireEvent(ctx context.Context, req *proto.EventRequest) (*proto.Close, error) {
+func (s *Agent) FireEvent(ctx context.Context, req *proto.EventRequest) (*proto.Close, error) {
 	params := []interface{}{}
 	for _, p := range req.Params {
 		val, err := ConvertAnyToInterface(p)

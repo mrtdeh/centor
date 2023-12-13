@@ -5,7 +5,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type agent struct {
+type Agent struct {
 	id        string // id of the agent
 	addr      string // address of this node
 	dc        string // datacenter of this node
@@ -15,8 +15,8 @@ type agent struct {
 	isReady   bool   // is this node ready or not
 	weight    int    // weight of this node in the cluster
 
-	parent *parent           // parent of this node in the cluster or in primary cluster
-	childs map[string]*child // childs of this node in the cluster
+	parent *Parent           // parent of this node in the cluster or in primary cluster
+	childs map[string]*Child // childs of this node in the cluster
 }
 
 type stream struct {
@@ -26,13 +26,13 @@ type stream struct {
 	close chan bool             // channel for closed connection
 }
 
-type parent struct {
-	agent  // parent agent information
+type Parent struct {
+	Agent  // parent agent information
 	stream // stream of parent server
 }
 
-type child struct {
-	agent         // child agent information
+type Child struct {
+	Agent         // child agent information
 	stream        // stream of the child server
 	status string // status of child in the cluster
 }

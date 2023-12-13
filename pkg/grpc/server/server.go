@@ -17,13 +17,7 @@ type Config struct {
 	IsLeader   bool     // is this node leader or not
 }
 
-var a *agent
-
-func GetAgentInstance() *agent {
-
-	return a
-
-}
+var App *Agent = &Agent{}
 
 func Start(cnf Config) error {
 	if cnf.Host == "" {
@@ -37,18 +31,25 @@ func Start(cnf Config) error {
 	}
 
 	// create default agent instance
-	a = &agent{
-		id:       cnf.Name,
-		dc:       cnf.DataCenter,
-		addr:     fmt.Sprintf("%s:%d", host, cnf.Port),
-		childs:   make(map[string]*child),
-		isServer: cnf.IsServer,
-		isLeader: cnf.IsLeader,
-	}
+	// App = &Agent{
+	// 	id:       cnf.Name,
+	// 	dc:       cnf.DataCenter,
+	// 	addr:     fmt.Sprintf("%s:%d", host, cnf.Port),
+	// 	childs:   make(map[string]*Child),
+	// 	isServer: cnf.IsServer,
+	// 	isLeader: cnf.IsLeader,
+	// }
+
+	App.id = cnf.Name
+	App.dc = cnf.DataCenter
+	App.addr = fmt.Sprintf("%s:%d", host, cnf.Port)
+	App.childs = make(map[string]*Child)
+	App.isServer = cnf.IsServer
+	App.isLeader = cnf.IsLeader
 
 	if cnf.IsLeader && len(cnf.Primaries) == 0 {
 		// if this node is a leader and no primaries are specified, this node becomes primary
-		a.isPrimary = true
+		App.isPrimary = true
 	}
 
 	var servers []string
@@ -61,12 +62,12 @@ func Start(cnf Config) error {
 		// add current node info to nodes info map
 		cluster.UpdateNodes([]NodeInfo{
 			{
-				Id:         a.id,
-				Address:    a.addr,
-				IsServer:   a.isServer,
-				IsLeader:   a.isLeader,
-				IsPrimary:  a.isPrimary,
-				DataCenter: a.dc,
+				Id:         App.id,
+				Address:    App.addr,
+				IsServer:   App.isServer,
+				IsLeader:   App.isLeader,
+				IsPrimary:  App.isPrimary,
+				DataCenter: App.dc,
 			},
 		})
 
@@ -79,7 +80,7 @@ func Start(cnf Config) error {
 	go func() {
 		for {
 			// try connect to parent server
-			err := a.ConnectToParent(connectConfig{
+			err := App.ConnectToParent(connectConfig{
 				ConnectToPrimary: connectToPrimary,
 				ServersAddresses: servers,
 			})
@@ -92,5 +93,5 @@ func Start(cnf Config) error {
 	}()
 
 	fmt.Println("DataCenter : ", cnf.DataCenter)
-	return a.Listen()
+	return App.Listen()
 }

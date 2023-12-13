@@ -12,10 +12,10 @@ const (
 	StatusConnecting   = "connecting"
 )
 
-func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
+func (a *Agent) Connect(stream proto.Discovery_ConnectServer) error {
 	var connected = make(chan bool, 1)
 	var joined bool
-	var c *child
+	var c *Child
 	var resCh = make(chan *proto.ConnectMessage, 1)
 	var errCh = make(chan error, 1)
 
@@ -38,14 +38,14 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 
 		// wait for receive message
 		case res := <-resCh:
-			c = &child{
-				agent: agent{
+			c = &Child{
+				Agent: Agent{
 					id:       res.Id,
 					dc:       res.DataCenter,
 					addr:     res.Addr,
 					isServer: res.IsServer,
 					isLeader: res.IsLeader,
-					parent:   &parent{agent: agent{}},
+					parent:   &Parent{Agent: Agent{}},
 				},
 			}
 			c.parent.id = res.ParentId
@@ -78,7 +78,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 				// wait for child to connect done
 				<-connected
 				// then, send changes to leader
-				err := a.syncAgentChange(&c.agent, ChangeActionAdd)
+				err := a.syncAgentChange(&c.Agent, ChangeActionAdd)
 				if err != nil {
 					errCh <- fmt.Errorf("error in sync change : %s", err.Error())
 				}
@@ -94,7 +94,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 				}
 
 				// send change for remove client to leader
-				err := a.syncAgentChange(&c.agent, ChangeActionRemove)
+				err := a.syncAgentChange(&c.Agent, ChangeActionRemove)
 				if err != nil {
 					return fmt.Errorf("error in sync change : %s", err.Error())
 				}
@@ -105,7 +105,7 @@ func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 	} // end for
 }
 
-func leaveChild(a *agent, c *child) error {
+func leaveChild(a *Agent, c *Child) error {
 	if _, exist := a.childs[c.id]; !exist {
 		return fmt.Errorf("this join id is not exist for leaving : %s", c.id)
 	}
@@ -119,7 +119,7 @@ func leaveChild(a *agent, c *child) error {
 
 	return nil
 }
-func addChild(a *agent, c *child) error {
+func addChild(a *Agent, c *Child) error {
 	if cc, exist := a.childs[c.id]; exist && cc.status == StatusConnected {
 		return fmt.Errorf("this join id already exist : %s", c.id)
 	}
