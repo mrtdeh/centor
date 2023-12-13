@@ -8,6 +8,8 @@ import (
 )
 
 func GetNodes(c *gin.Context) {
+	h := getServerAPI()
+
 	res := h.GetClusterNodes()
 	var r []any
 	for _, v := range res {

@@ -14,7 +14,7 @@ type PluginProvider struct {
 	PluginKits.PluginProps
 }
 
-func (p *PluginProvider) SetHandler(h PluginKits.CentorHandler) {
+func (p *PluginProvider) SetHandler(h PluginKits.CoreHandlerInterface) {
 	p.Handler = h
 }
 
@@ -22,7 +22,7 @@ func (p *PluginProvider) SetRouter(r http.Handler) {
 	p.Router = r
 }
 
-var h PluginKits.CentorHandler
+var h PluginKits.CoreHandlerInterface
 
 func (p *PluginProvider) Init() error {
 	h = p.Handler

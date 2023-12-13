@@ -12,7 +12,9 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-type GRPC_Handlers struct{}
+type CoreHandlers struct {
+	Agent *agent
+}
 
 type FileHandler struct {
 	Name      string
@@ -20,20 +22,35 @@ type FileHandler struct {
 	Data      []byte
 }
 
-func (h *GRPC_Handlers) GetMyId() string {
-	h.WaitForReady(context.Background())
-	return a.id
+// wait for current agent is running completely
+func (h *CoreHandlers) WaitForReady(ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			if h.Agent != nil && h.Agent.isReady {
+				return nil
+			}
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
 }
 
-func (h *GRPC_Handlers) GetParentId() string {
+func (h *CoreHandlers) GetMyId() string {
 	h.WaitForReady(context.Background())
-	if a.parent != nil {
-		return a.parent.id
+	return h.Agent.id
+}
+
+func (h *CoreHandlers) GetParentId() string {
+	h.WaitForReady(context.Background())
+	if h.Agent.parent != nil {
+		return h.Agent.parent.id
 	}
 	return ""
 }
 
-func (h *GRPC_Handlers) CallAPI(ctx context.Context, nodeId, method, addr, body string) (*map[string]interface{}, error) {
+func (h *CoreHandlers) CallAPI(ctx context.Context, nodeId, method, addr, body string) (*map[string]interface{}, error) {
 	if n, err := cluster.GetNode(nodeId); err == nil {
 		conn, err := grpc_Dial(n.Address)
 		if err != nil {
@@ -63,7 +80,7 @@ func (h *GRPC_Handlers) CallAPI(ctx context.Context, nodeId, method, addr, body 
 	return nil, fmt.Errorf("node id %s not found", nodeId)
 }
 
-func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, params ...any) error {
+func (h *CoreHandlers) FireEvent(ctx context.Context, nodeId, event string, params ...any) error {
 	protoParams := []*anypb.Any{}
 
 	var fire = func(addr string) error {
@@ -79,7 +96,7 @@ func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, par
 		_, err = client.FireEvent(ctx, &proto.EventRequest{
 			Name:   event,
 			Params: protoParams,
-			From:   a.id,
+			From:   h.Agent.id,
 		})
 		if err != nil {
 			return err
@@ -97,7 +114,7 @@ func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, par
 	}
 
 	// first check node id with parent id
-	if a.isLeader && a.parent != nil && a.parent.id == nodeId {
+	if h.Agent.isLeader && h.Agent.parent != nil && h.Agent.parent.id == nodeId {
 		return fire(a.parent.addr)
 	}
 
@@ -108,7 +125,7 @@ func (h *GRPC_Handlers) FireEvent(ctx context.Context, nodeId, event string, par
 	return fmt.Errorf("node id %s is not exist", nodeId)
 }
 
-func (h *GRPC_Handlers) Exec(ctx context.Context, nodeId, commnad string) (string, error) {
+func (h *CoreHandlers) Exec(ctx context.Context, nodeId, commnad string) (string, error) {
 
 	// check if node_id is exist or not
 	if n, err := cluster.GetNode(nodeId); err == nil {
@@ -134,7 +151,7 @@ func (h *GRPC_Handlers) Exec(ctx context.Context, nodeId, commnad string) (strin
 	return "", nil
 }
 
-func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filename string, data []byte) error {
+func (h *CoreHandlers) SendFile(ctx context.Context, nodeId, filename string, data []byte) error {
 
 	reader := bytes.NewReader(data)
 	filesize := reader.Size()
@@ -210,26 +227,11 @@ func (h *GRPC_Handlers) SendFile(ctx context.Context, nodeId, filename string, d
 	return nil
 }
 
-// wait for current agent is running completely
-func (h *GRPC_Handlers) WaitForReady(ctx context.Context) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			if a != nil && a.isReady {
-				return nil
-			}
-		}
-		time.Sleep(time.Millisecond * 100)
-	}
-}
-
 // Todo: this function should be removed
-func (h *GRPC_Handlers) Call(ctx context.Context) (string, error) {
+func (h *CoreHandlers) Call(ctx context.Context) (string, error) {
 
-	res, err := a.Call(ctx, &proto.CallRequest{
-		AgentId: a.id,
+	res, err := h.Agent.Call(ctx, &proto.CallRequest{
+		AgentId: h.Agent.id,
 	})
 	if err != nil {
 		return "", err
@@ -238,6 +240,6 @@ func (h *GRPC_Handlers) Call(ctx context.Context) (string, error) {
 }
 
 // returns a map of all the nodes in the cluster
-func (h *GRPC_Handlers) GetClusterNodes() map[string]NodeInfo {
+func (h *CoreHandlers) GetClusterNodes() map[string]NodeInfo {
 	return cluster.nodes
 }

@@ -5,6 +5,6 @@ import (
 )
 
 type Config struct {
-	GRPCHandler CentorHandler
+	CoreHandler CoreHandlerInterface
 	RouterAPI   http.Handler
 }

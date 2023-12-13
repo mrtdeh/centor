@@ -41,8 +41,10 @@ func main() {
 	// bootstrap plugins
 	err := pluginManager.Bootstrap(pluginManager.Config{
 		Config: PluginKits.Config{
-			GRPCHandler: &grpc_server.GRPC_Handlers{},
-			RouterAPI:   router,
+			CoreHandler: &grpc_server.CoreHandlers{
+				Agent: grpc_server.GetAgentInstance(),
+			},
+			RouterAPI: router,
 		},
 	})
 	if err != nil {
@@ -57,12 +59,10 @@ func main() {
 			Router: router,
 		}
 		fmt.Printf("initil api server an address %s:%d\n", httpServer.Host, httpServer.Port)
-
 		go func() {
 			log.Fatal(httpServer.Serve())
 		}()
 	}
-
 	// start envoy proxy server
 	if cnf.Connect != "" {
 		go func() {

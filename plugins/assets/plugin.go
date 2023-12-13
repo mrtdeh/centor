@@ -11,6 +11,6 @@ func Loader(cnf Config, load func(*PluginManagerService)) error {
 	load(pman)
 
 	// Start the pman and its plugins
-	pman.Start(cnf.GRPCHandler, cnf.RouterAPI)
+	pman.Start(cnf.CoreHandler, cnf.RouterAPI)
 	return nil
 }

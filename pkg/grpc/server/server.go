@@ -19,6 +19,12 @@ type Config struct {
 
 var a *agent
 
+func GetAgentInstance() *agent {
+
+	return a
+
+}
+
 func Start(cnf Config) error {
 	if cnf.Host == "" {
 		cnf.Host = "127.0.0.1"

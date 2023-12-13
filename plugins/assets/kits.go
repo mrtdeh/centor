@@ -10,11 +10,11 @@ import (
 
 type PluginProps struct {
 	Name    string
-	Handler CentorHandler
+	Handler CoreHandlerInterface
 	Router  http.Handler
 }
 
-type CentorHandler interface {
+type CoreHandlerInterface interface {
 	Call(context.Context) (string, error)
 	GetClusterNodes() map[string]grpc_server.NodeInfo
 	WaitForReady(context.Context) error
@@ -30,7 +30,7 @@ type CentorHandler interface {
 type Plugin interface {
 	Init() error
 	Run()
-	SetHandler(handler CentorHandler)
+	SetHandler(handler CoreHandlerInterface)
 	SetRouter(router http.Handler)
 }
 
@@ -45,7 +45,7 @@ func (c *PluginManagerService) AddPlugin(p Plugin) {
 }
 
 // Start method to start the CoreService and its plugins
-func (c *PluginManagerService) Start(h CentorHandler, r http.Handler) {
+func (c *PluginManagerService) Start(h CoreHandlerInterface, r http.Handler) {
 	fmt.Println("PluginManagerService is starting...")
 	for _, plugin := range c.Plugins {
 		plugin.SetHandler(h)

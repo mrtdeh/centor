@@ -17,7 +17,7 @@ type PluginProvider struct {
 	PluginKits.PluginProps
 }
 
-func (p *PluginProvider) SetHandler(h PluginKits.CentorHandler) {
+func (p *PluginProvider) SetHandler(h PluginKits.CoreHandlerInterface) {
 	p.Handler = h
 }
 
@@ -25,7 +25,7 @@ func (p *PluginProvider) SetRouter(r http.Handler) {
 	p.Router = r
 }
 
-var h PluginKits.CentorHandler
+var h PluginKits.CoreHandlerInterface
 
 var sysinfo system
 
@@ -62,7 +62,7 @@ func (p *PluginProvider) Run() {
 	fmt.Printf("Plugin %s is running...\n", p.Name)
 
 	h.WaitForReady(context.Background())
-
+	fmt.Println("debug system info")
 	i := 10
 	for {
 
@@ -98,6 +98,7 @@ func updateSystemsInfo(systems []System) error {
 	sysinfo.l.Lock()
 	for _, s := range systems {
 		sysinfo.info[s.NodeId] = s
+		fmt.Println("update info : ", sysinfo.info)
 	}
 	sysinfo.l.Unlock()
 

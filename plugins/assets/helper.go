@@ -3,7 +3,7 @@ package PluginKits
 import "fmt"
 
 func validateConfig(config Config) error {
-	if config.GRPCHandler == nil {
+	if config.CoreHandler == nil {
 		return fmt.Errorf("handler is nil")
 	}
 	if config.RouterAPI == nil {

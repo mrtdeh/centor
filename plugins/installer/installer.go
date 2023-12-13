@@ -17,7 +17,7 @@ type PluginProvider struct {
 	PluginKits.PluginProps
 }
 
-func (p *PluginProvider) SetHandler(h PluginKits.CentorHandler) {
+func (p *PluginProvider) SetHandler(h PluginKits.CoreHandlerInterface) {
 	p.Handler = h
 }
 
@@ -37,7 +37,7 @@ func (p *PluginProvider) Init() error {
 
 }
 
-var h PluginKits.CentorHandler
+var h PluginKits.CoreHandlerInterface
 
 // Run method for ExamplePlugin1
 func (p *PluginProvider) Run() {
