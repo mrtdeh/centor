@@ -63,17 +63,20 @@ func main() {
 		}()
 	}
 
+	// start envoy proxy server
 	if cnf.Connect != "" {
 		go func() {
 			log.Fatal(envoy.NewEnvoy(
 				envoy.EnvoyConfig{
-					ListenerPort: cnf.Port + 1,
-					EndpointPort: cnf.Port,
+					// note: give container name if running on docker
+					EndpointAddress: cnf.AltHost,
+					ListenerPort:    cnf.Port + 1,
+					EndpointPort:    cnf.Port,
 					TLSConfig: envoy.TLSConfig{
-						Secure:         true,
-						CA:             "./pkg/envoy/testData/certs/ca.crt",
-						Cert:           "./pkg/envoy/testData/certs/server.crt",
-						Key:            "./pkg/envoy/testData/certs/server.key",
+						Secure:         cnf.SSL_Enabled,
+						CA:             cnf.SSL_ca,
+						Cert:           cnf.SSL_cert,
+						Key:            cnf.SSL_key,
 						SessionTimeout: "6000s",
 					},
 				},

@@ -47,9 +47,11 @@ type Config struct {
 	PrimaryServersAddr string    // address of the primary servers in the cluster
 	Services           []Service // services in the cluster
 	Connect            string
-	SSL_ca             string
-	SSL_cert           string
-	SSL_key            string
+
+	SSL_Enabled bool
+	SSL_ca      string
+	SSL_cert    string
+	SSL_key     string
 }
 
 var (
@@ -93,6 +95,9 @@ func LoadConfiguration() *Config {
 	if e := os.Getenv("JOIN"); e != "" {
 		cnf.ServersAddr = e
 	}
+	if e := os.Getenv("SSL_ENABLED"); isTrue(e) {
+		cnf.SSL_Enabled = true
+	}
 	if e := os.Getenv("SSL_CA"); e != "" {
 		cnf.SSL_ca = e
 	}
@@ -105,10 +110,10 @@ func LoadConfiguration() *Config {
 	if e := os.Getenv("PRIMARIES"); e != "" {
 		cnf.PrimaryServersAddr = e
 	}
-	if e := os.Getenv("SERVER"); e != "" {
+	if e := os.Getenv("SERVER"); isTrue(e) {
 		cnf.IsServer = true
 	}
-	if e := os.Getenv("LEADER"); e != "" {
+	if e := os.Getenv("LEADER"); isTrue(e) {
 		cnf.IsLeader = true
 	}
 	if e := os.Getenv("ALTERNATIVE_HOST"); e != "" {
@@ -122,6 +127,7 @@ func LoadConfiguration() *Config {
 	flag.StringVar(&cnf.Name, "n", cnf.Name, "")
 	flag.StringVar(&cnf.DataCenter, "dc", cnf.DataCenter, "")
 
+	flag.BoolVar(&cnf.SSL_Enabled, "ssl_enabled", cnf.SSL_Enabled, "")
 	flag.StringVar(&cnf.SSL_ca, "ssl_ca", cnf.SSL_ca, "")
 	flag.StringVar(&cnf.SSL_cert, "ssl_cert", cnf.SSL_cert, "")
 	flag.StringVar(&cnf.SSL_key, "ssl_key", cnf.SSL_key, "")
@@ -145,6 +151,13 @@ func LoadConfiguration() *Config {
 	}
 
 	return cnf
+}
+
+func isTrue(s string) bool {
+	if s == "true" || s == "yes" || s == "1" {
+		return true
+	}
+	return false
 }
 
 func compile(configs []config) (*Config, error) {
