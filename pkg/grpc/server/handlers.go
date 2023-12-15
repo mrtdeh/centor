@@ -13,7 +13,7 @@ import (
 )
 
 type CoreHandlers struct {
-	Agent *Agent
+	Agent *agent
 }
 
 type FileHandler struct {
@@ -21,14 +21,6 @@ type FileHandler struct {
 	Extension string
 	Data      []byte
 }
-
-// func (h *CoreHandlers) GetApp() *grpc_server.Agent {
-// 	for {
-// 		if h.Agent != nil {
-// 			return h.Agent
-// 		}
-// 	}
-// }
 
 // wait for current agent is running completely
 func (h *CoreHandlers) WaitForReady(ctx context.Context) error {

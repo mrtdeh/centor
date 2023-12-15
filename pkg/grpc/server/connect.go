@@ -12,10 +12,10 @@ const (
 	StatusConnecting   = "connecting"
 )
 
-func (a *Agent) Connect(stream proto.Discovery_ConnectServer) error {
+func (a *agent) Connect(stream proto.Discovery_ConnectServer) error {
 	var connected = make(chan bool, 1)
 	var joined bool
-	var c *Child
+	var c *child
 	var resCh = make(chan *proto.ConnectMessage, 1)
 	var errCh = make(chan error, 1)
 
@@ -38,26 +38,26 @@ func (a *Agent) Connect(stream proto.Discovery_ConnectServer) error {
 
 		// wait for receive message
 		case res := <-resCh:
-			c = &Child{
-				Agent: Agent{
+			c = &child{
+				agent: agent{
 					id:       res.Id,
 					dc:       res.DataCenter,
 					addr:     res.Addr,
 					isServer: res.IsServer,
 					isLeader: res.IsLeader,
-					parent:   &Parent{Agent: Agent{}},
+					parent:   &parent{agent: agent{}},
 				},
 			}
 			c.parent.id = res.ParentId
 			// store client connection
-			err := addChild(a, c) // add child
+			err := addchild(a, c) // add child
 			if err != nil {
 				return err
 			}
 			joined = true
 
 			defer func() {
-				leaveChild(a, c)
+				leavechild(a, c)
 			}()
 			// send back agent id to connected client
 			err = stream.Send(&proto.ConnectBackMessage{Id: a.id})
@@ -67,7 +67,7 @@ func (a *Agent) Connect(stream proto.Discovery_ConnectServer) error {
 
 			// Dial back to joined server
 			go func() {
-				err := a.CreateChildStream(c, connected)
+				err := a.CreatechildStream(c, connected)
 				if err != nil {
 					errCh <- fmt.Errorf("error in create child stream : %s", err.Error())
 				}
@@ -78,7 +78,7 @@ func (a *Agent) Connect(stream proto.Discovery_ConnectServer) error {
 				// wait for child to connect done
 				<-connected
 				// then, send changes to leader
-				err := a.syncAgentChange(&c.Agent, ChangeActionAdd)
+				err := a.syncAgentChange(&c.agent, ChangeActionAdd)
 				if err != nil {
 					errCh <- fmt.Errorf("error in sync change : %s", err.Error())
 				}
@@ -89,12 +89,12 @@ func (a *Agent) Connect(stream proto.Discovery_ConnectServer) error {
 			fmt.Println("conenct error : ", err.Error())
 			if joined {
 				// leave child from joined server
-				if err := leaveChild(a, c); err != nil {
+				if err := leavechild(a, c); err != nil {
 					return err
 				}
 
 				// send change for remove client to leader
-				err := a.syncAgentChange(&c.Agent, ChangeActionRemove)
+				err := a.syncAgentChange(&c.agent, ChangeActionRemove)
 				if err != nil {
 					return fmt.Errorf("error in sync change : %s", err.Error())
 				}
@@ -105,7 +105,7 @@ func (a *Agent) Connect(stream proto.Discovery_ConnectServer) error {
 	} // end for
 }
 
-func leaveChild(a *Agent, c *Child) error {
+func leavechild(a *agent, c *child) error {
 	if _, exist := a.childs[c.id]; !exist {
 		return fmt.Errorf("this join id is not exist for leaving : %s", c.id)
 	}
@@ -119,7 +119,7 @@ func leaveChild(a *Agent, c *Child) error {
 
 	return nil
 }
-func addChild(a *Agent, c *Child) error {
+func addchild(a *agent, c *child) error {
 	if cc, exist := a.childs[c.id]; exist && cc.status == StatusConnected {
 		return fmt.Errorf("this join id already exist : %s", c.id)
 	}

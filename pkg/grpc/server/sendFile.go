@@ -9,7 +9,7 @@ import (
 	"github.com/mrtdeh/centor/proto"
 )
 
-func (a *Agent) SendFile(stream proto.Discovery_SendFileServer) error {
+func (a *agent) SendFile(stream proto.Discovery_SendFileServer) error {
 	var file *os.File
 	for {
 		msg, err := stream.Recv()

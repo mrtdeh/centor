@@ -13,7 +13,7 @@ var h = &grpc_server.CoreHandlers{
 // 		a := grpc_server.App
 // 		if a != nil && a.is{
 // 			return &grpc_server.CoreHandlers{
-// 				Agent: grpc_server.App,
+// 				agent: grpc_server.App,
 // 			}
 // 		}
 // 		time.Sleep(time.Millisecond * 500)

@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func (s *Agent) CreateProxy(ctx context.Context, req *proto.CreateProxyRequest) (*proto.Close, error) {
+func (s *agent) CreateProxy(ctx context.Context, req *proto.CreateProxyRequest) (*proto.Close, error) {
 	// search service id in services pool and get that target id
 
 	// iterate connections to find target
@@ -34,7 +34,7 @@ func (s *Agent) CreateProxy(ctx context.Context, req *proto.CreateProxyRequest) 
 	return &proto.Close{}, nil
 }
 
-func (a *Agent) CreateServiceProxy() {
+func (a *agent) CreateServiceProxy() {
 
 	// check for ready
 	a.waitForReady()
@@ -84,7 +84,7 @@ func (a *Agent) CreateServiceProxy() {
 
 }
 
-func (c *Agent) createProxy(serviceId string) error {
+func (c *agent) createProxy(serviceId string) error {
 	_, err := c.parent.conn.CreateProxy(context.Background(), &proto.CreateProxyRequest{
 		// ServiceId: serviceId,
 		// TargetId:          target,

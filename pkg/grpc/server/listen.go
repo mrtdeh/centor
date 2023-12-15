@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (a *Agent) Listen() error {
+func (a *agent) Listen() error {
 	grpcServer := grpc.NewServer()
 	listener, err := net.Listen("tcp", a.addr)
 	if err != nil {

@@ -17,7 +17,7 @@ type Config struct {
 	IsLeader   bool     // is this node leader or not
 }
 
-var App *Agent = &Agent{}
+var App *agent = &agent{}
 
 func Start(cnf Config) error {
 	if cnf.Host == "" {
@@ -31,21 +31,14 @@ func Start(cnf Config) error {
 	}
 
 	// create default agent instance
-	// App = &Agent{
-	// 	id:       cnf.Name,
-	// 	dc:       cnf.DataCenter,
-	// 	addr:     fmt.Sprintf("%s:%d", host, cnf.Port),
-	// 	childs:   make(map[string]*Child),
-	// 	isServer: cnf.IsServer,
-	// 	isLeader: cnf.IsLeader,
-	// }
-
-	App.id = cnf.Name
-	App.dc = cnf.DataCenter
-	App.addr = fmt.Sprintf("%s:%d", host, cnf.Port)
-	App.childs = make(map[string]*Child)
-	App.isServer = cnf.IsServer
-	App.isLeader = cnf.IsLeader
+	*App = agent{
+		id:       cnf.Name,
+		dc:       cnf.DataCenter,
+		addr:     fmt.Sprintf("%s:%d", host, cnf.Port),
+		childs:   make(map[string]*child),
+		isServer: cnf.IsServer,
+		isLeader: cnf.IsLeader,
+	}
 
 	if cnf.IsLeader && len(cnf.Primaries) == 0 {
 		// if this node is a leader and no primaries are specified, this node becomes primary
