@@ -77,7 +77,7 @@ func (h *CoreHandlers) CallAPI(ctx context.Context, nodeId, method, addr, body s
 		}
 		var result = &map[string]interface{}{
 			"body":  res.Body,
-			"error": res.Erorr,
+			"error": res.Error,
 		}
 
 		return result, nil

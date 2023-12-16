@@ -1,6 +1,7 @@
 package pluginManager
 
 import (
+	apiCaller_plugin "github.com/mrtdeh/centor/plugins/apiCaller"
 	PluginKits "github.com/mrtdeh/centor/plugins/assets"
 	installer_plugin "github.com/mrtdeh/centor/plugins/installer"
 	system_plugin "github.com/mrtdeh/centor/plugins/system"
@@ -29,6 +30,12 @@ func Bootstrap(cnf Config) error {
 		pms.AddPlugin(&system_plugin.PluginProvider{
 			PluginProps: PluginKits.PluginProps{
 				Name: "system",
+			},
+		})
+
+		pms.AddPlugin(&apiCaller_plugin.PluginProvider{
+			PluginProps: PluginKits.PluginProps{
+				Name: "api-caller",
 			},
 		})
 

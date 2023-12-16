@@ -22,12 +22,12 @@ func (s *agent) CallAPI(ctx context.Context, req *proto.APIRequest) (*proto.APIR
 	res, err := makeInternalRequest(req.Method, req.Addr, req.Body)
 	if err != nil {
 		return &proto.APIResponse{
-			Erorr: err.Error(),
+			Error: err.Error(),
 		}, err
 	}
 	return &proto.APIResponse{
 		Body:   string(res.Body),
-		Erorr:  res.Error,
+		Error:  res.Error,
 		Status: int32(res.StatusCode),
 	}, nil
 }
