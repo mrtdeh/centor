@@ -13,7 +13,13 @@ import (
 )
 
 type CoreHandlers struct {
-	Agent *agent
+	agent *agent
+}
+
+func GetAgentHandler() *CoreHandlers {
+	return &CoreHandlers{
+		agent: app,
+	}
 }
 
 type FileHandler struct {
@@ -29,7 +35,7 @@ func (h *CoreHandlers) WaitForReady(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if h.Agent != nil && h.Agent.isReady {
+			if h.agent != nil && h.agent.isReady {
 				return nil
 			}
 		}
@@ -39,13 +45,13 @@ func (h *CoreHandlers) WaitForReady(ctx context.Context) error {
 
 func (h *CoreHandlers) GetMyId() string {
 	h.WaitForReady(context.Background())
-	return h.Agent.id
+	return h.agent.id
 }
 
 func (h *CoreHandlers) GetParentId() string {
 	h.WaitForReady(context.Background())
-	if h.Agent.parent != nil {
-		return h.Agent.parent.id
+	if h.agent.parent != nil {
+		return h.agent.parent.id
 	}
 	return ""
 }
@@ -96,7 +102,7 @@ func (h *CoreHandlers) FireEvent(ctx context.Context, nodeId, event string, para
 		_, err = client.FireEvent(ctx, &proto.EventRequest{
 			Name:   event,
 			Params: protoParams,
-			From:   h.Agent.id,
+			From:   h.agent.id,
 		})
 		if err != nil {
 			return err
@@ -114,8 +120,8 @@ func (h *CoreHandlers) FireEvent(ctx context.Context, nodeId, event string, para
 	}
 
 	// first check node id with parent id
-	if h.Agent.isLeader && h.Agent.parent != nil && h.Agent.parent.id == nodeId {
-		return fire(App.parent.addr)
+	if h.agent.isLeader && h.agent.parent != nil && h.agent.parent.id == nodeId {
+		return fire(app.parent.addr)
 	}
 
 	// check if node id is exist in nodes or not
@@ -230,8 +236,8 @@ func (h *CoreHandlers) SendFile(ctx context.Context, nodeId, filename string, da
 // Todo: this function should be removed
 func (h *CoreHandlers) Call(ctx context.Context) (string, error) {
 
-	res, err := h.Agent.Call(ctx, &proto.CallRequest{
-		AgentId: h.Agent.id,
+	res, err := h.agent.Call(ctx, &proto.CallRequest{
+		AgentId: h.agent.id,
 	})
 	if err != nil {
 		return "", err
