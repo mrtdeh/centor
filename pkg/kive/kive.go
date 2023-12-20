@@ -16,7 +16,7 @@ const (
 var db *KiveDB
 
 type KiveDB struct {
-	Data map[string]PublishRequest `json:"data"`
+	data map[string]PublishRequest
 	m    sync.RWMutex
 }
 
@@ -49,7 +49,7 @@ func LoadDB() error {
 		return err
 	}
 
-	fmt.Printf("data : %+v", db.Data)
+	fmt.Printf("data : %+v", db.data)
 
 	return nil
 }
@@ -59,7 +59,7 @@ func (k *KiveDB) Set(key string, value any) {
 	defer k.m.Unlock()
 	id := generateHash(key)
 
-	db.Data[id] = PublishRequest{
+	db.data[id] = PublishRequest{
 		Id:          id,
 		PublishDate: time.Now(),
 		Release:     1,
@@ -69,7 +69,7 @@ func (k *KiveDB) Set(key string, value any) {
 		},
 	}
 
-	jsonData, err := json.Marshal(db.Data)
+	jsonData, err := json.Marshal(db.data)
 	if err != nil {
 		log.Fatal("error in marshalling : ", err)
 	}
@@ -78,9 +78,9 @@ func (k *KiveDB) Set(key string, value any) {
 		log.Fatal("error in writing : ", err)
 	}
 
-	if r, ok := db.Data[id]; ok {
+	if r, ok := db.data[id]; ok {
 		r.Release += 2
-		db.Data[id] = r
+		db.data[id] = r
 	}
 }
 
@@ -88,7 +88,7 @@ func (k *KiveDB) Get(key string) (any, error) {
 	k.m.RLock()
 	defer k.m.RUnlock()
 
-	if r, ok := db.Data[key]; ok {
+	if r, ok := db.data[key]; ok {
 		return r.Record.Value, nil
 	}
 	return nil, fmt.Errorf("key not found: %s", key)
